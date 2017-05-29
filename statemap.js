@@ -36,9 +36,8 @@ svg
 
 d3.json("data/congressional_districts.json", function(congress) {
   d3.json("data/us.json", function(us) {
-    d3.json("data/senate_members.json", function(senate) {
-      d3.json("data/house_members.json", function(house) {
-
+    d3.csv("data/senate-members.csv", function(senate) {
+      d3.csv("data/house-members.csv", function(house) {
         svg.append("defs").append("path")
           .attr("id", "land")
           .datum(topojson.feature(us, us.objects.land))
@@ -48,12 +47,17 @@ d3.json("data/congressional_districts.json", function(congress) {
         .append("use")
           .attr("xlink:href", "#land");
 
-        draw_districts(us, congress, house)
+        // house2 = {}
+        // for (i=0; i<house.length; i++) {
+        //   house2[house[i].district_id] = house[i];
+        // }
+
+        draw_districts(us, congress, house);
         //draw_states(us, congress, senate);
-
-
-
-})})})});
+      })
+    })
+  })
+});
 
 function draw_states(us, congress, senate){
   g.selectAll("path")
@@ -62,19 +66,18 @@ function draw_states(us, congress, senate){
       .attr("d", path)
       .attr("class", "feature")
       .attr('id', function(d, i) { return us.objects.states.geometries[i].id;})
-
       .attr("fill", function(d, i) {
         var state = us.objects.states.geometries[i].id;
         var sen1, sen2;
         if(state != 'DC' && state != 'PR' && state != 'VI'){
           for (var j=0; j<101; j++){
-            var sen_home = senate.results[0].members[j].state;
+            var sen_home = senate[j].state;
             if(state == sen_home && !sen1){
-              sen1 = senate.results[0].members[j];
+              sen1 = senate[j];
               for(var k=j+1; k<101; k++){
-                var sen_home2 = senate.results[0].members[k].state;
+                var sen_home2 = senate[k].state;
                 if(state == sen_home2 && !sen2){
-                  sen2 = senate.results[0].members[k];
+                  sen2 = senate[k];
                 }
               }
             }
@@ -167,23 +170,26 @@ function draw_districts(us, congress, house){
         var distString = district.toString();
 
         var rep1;
-        if(!distString.includes('69') && !distString.includes('78') && !distString.includes('72') && district != 6098 && district != 1198){
-          for (var j=0; j<442; j++){
-            var rep_home = house.results[0].members[j].distid;
-            if(district.toString() === rep_home){
-              rep1 = house.results[0].members[j];
-            }
+        if (!distString.includes('69') && !distString.includes('78') &&
+            !distString.includes('72') && district != 6098 && district != 1198) {
+          for (var j=0; j<442; j++) {
+            var rep_home = house[j].district_id;
+            if (distString === rep_home) {
+              rep1 = house[j];
+            } else { console.log(distString); }
           }
-          if(rep1.party === "R") {return 'red';}
-          else if(rep1.party === "D") {return 'blue';}
-          else if(rep1.party === "I") {return 'green';}
+          if (rep1.party === "R") { return 'red'; }
+          else if (rep1.party === "D") { return 'blue'; }
+          else if (rep1.party === "I") { return 'green'; }
         }
       })
       .on("click", clicked);
 
   g.append("path")
       .attr("class", "district-boundaries")
-      .datum(topojson.mesh(congress, congress.objects.districts, function(a, b) { return a !== b && (a.id / 1000 | 0) === (b.id / 1000 | 0); }))
+      .datum(topojson.mesh(congress, congress.objects.districts, function(a, b) {
+        return a !== b && (a.id / 1000 | 0) === (b.id / 1000 | 0);
+      }))
       .attr("d", path);
 
   g.append("path")
@@ -239,13 +245,13 @@ function sen_header(d, senate, check){
   var sen1, sen2;
   if(state != 'DC' && state != 'PR' && state != 'VI'){
     for (var j=0; j<101; j++){
-      var sen_home = senate.results[0].members[j].state;
+      var sen_home = senate[j].state;
       if(state == sen_home && !sen1){
-        sen1 = senate.results[0].members[j];
+        sen1 = senate[j];
         for(var k=j+1; k<101; k++){
-          var sen_home2 = senate.results[0].members[k].state;
+          var sen_home2 = senate[k].state;
           if(state == sen_home2 && !sen2){
-            sen2 = senate.results[0].members[k];
+            sen2 = senate[k];
           }
         }
       }
