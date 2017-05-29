@@ -8,11 +8,19 @@ from datetime import datetime
 
 
 def main():
-    global api_key, verbose
+    global api_key, verbose, state_to_fips
 
     config = configparser.ConfigParser()
     config.read('api.cfg')
     api_key = config['ProPublica API']['api_key']
+
+    state_to_fips = {}
+    with open('fips_codes.csv', 'r') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            state = row[1]
+            fips_code = row[0]
+            state_to_fips[state] = fips_code
 
     parser = argparse.ArgumentParser(
         description='Hit up the ProPublica Congress API for some data')
@@ -70,10 +78,11 @@ def get_members(chamber):
     out = []
     members_out = {}
     fieldnames = ['id', 'name', 'age', 'gender', 'party', 'state', 'district',
-        'website', 'twitter', 'seniority', 'bills_sponsored', 'bills_cosponsored',
-        'missed_votes_pct', 'votes_with_party_pct', 'committees']
+        'district_id', 'website', 'twitter', 'seniority', 'bills_sponsored',
+        'bills_cosponsored', 'missed_votes_pct', 'votes_with_party_pct', 'committees']
     if chamber == 'senate':
         fieldnames.remove('district')
+        fieldnames.remove('district_id')
     out.append(fieldnames)
     query = '115/{0}/members.json'.format(chamber)
     results = api_call(query)
@@ -96,6 +105,7 @@ def get_members(chamber):
         info['state'] = member['state']
         if chamber == 'house':
             info['district'] = member['district']
+            info['district_id'] = build_district_id(info['state'], info['district'])
         info['website'] = member_results['url']
         info['twitter'] = member_results['twitter_account']
         info['seniority'] = role['seniority']
@@ -158,6 +168,19 @@ def calculate_age(dob):
     now = datetime.now()
     age = now.year - birth_date.year
     return age
+
+
+def build_district_id(state, district):
+    one_district_states = ['AK', 'DC', 'DE', 'MT', 'ND', 'SD', 'VT', 'WY',
+        'AS', 'GU', 'MP', 'PR', 'UM', 'VI']
+    state_fips = state_to_fips[state]
+    if state in one_district_states:
+        distid = state_fips + '00'
+    elif len(district) == 1:
+        distid = state_fips + '0' + district
+    else:
+        distid = state_fips + district
+    return distid
 
 
 if __name__ == "__main__":
