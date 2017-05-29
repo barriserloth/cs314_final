@@ -49,7 +49,7 @@ def main():
     # and data is a dictionary of dictionaries containing the meat of the data
     fieldnames, data = out
 
-    with open('{0}-{1}.csv'.format(chamber, search), 'w') as f:
+    with open('data/{0}-{1}.csv'.format(chamber, search), 'w') as f:
         writer = csv.DictWriter(f, fieldnames)
         writer.writeheader()
         for row in data.values():
