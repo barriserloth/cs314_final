@@ -174,6 +174,8 @@ def build_district_id(state, district):
     one_district_states = ['AK', 'DC', 'DE', 'MT', 'ND', 'SD', 'VT', 'WY',
         'AS', 'GU', 'MP', 'PR', 'UM', 'VI']
     state_fips = state_to_fips[state]
+    if state_fips[0] == '0':
+        state_fips = state_fips[1]
     if state in one_district_states:
         distid = state_fips + '00'
     elif len(district) == 1:
