@@ -5,6 +5,7 @@ import html
 import json
 import csv
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 
 def main():
@@ -15,7 +16,7 @@ def main():
     api_key = config['ProPublica API']['api_key']
 
     state_to_fips = {}
-    with open('fips_codes.csv', 'r') as f:
+    with open('data/fips_codes.csv', 'r') as f:
         reader = csv.reader(f)
         for row in reader:
             state = row[1]
@@ -166,7 +167,7 @@ def build_name(first, middle, last):
 def calculate_age(dob):
     birth_date = datetime.strptime(dob, '%Y-%m-%d')
     now = datetime.now()
-    age = now.year - birth_date.year
+    age = relativedelta(now, birth_date).years
     return age
 
 
