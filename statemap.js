@@ -4,9 +4,7 @@ var width = 1400,
 
 var zoom_c = false;
 
-var projection = d3.geo.albersUsa()
-    .scale(1100)
-    .translate([450, 400]);
+var projection = d3.geo.albersUsa();
 
 var zoom = d3.behavior.zoom()
     .translate([0, 0])
@@ -30,9 +28,7 @@ svg.append("rect")
 
 var g = svg.append("g");
 
-svg
-    //.call(zoom) // delete this line to disable free zooming
-    .call(zoom.event);
+svg.call(zoom.event);
 
 d3.json("data/congressional_districts.json", function(congress) {
   d3.json("data/us.json", function(us) {
@@ -47,12 +43,13 @@ d3.json("data/congressional_districts.json", function(congress) {
         .append("use")
           .attr("xlink:href", "#land");
 
-        // house2 = {}
-        // for (i=0; i<house.length; i++) {
-        //   house2[house[i].district_id] = house[i];
-        // }
+        // Reorganize house data into a dictionary with district IDs as keys
+        house2 = {}
+        for (i=0; i<house.length; i++) {
+          house2[house[i].district_id] = house[i];
+        }
 
-        draw_districts(us, congress, house);
+        draw_districts(us, congress, house2);
         //draw_states(us, congress, senate);
       })
     })
@@ -156,9 +153,8 @@ function draw_states(us, congress, senate){
         .attr("class", "state-boundaries")
         .attr("d", path);
 }
-function draw_districts(us, congress, house){
 
-
+function draw_districts(us, congress, house, committee){
   g.selectAll("path")
       .data(topojson.feature(congress, congress.objects.districts).features)
     .enter().append("path")
@@ -168,19 +164,11 @@ function draw_districts(us, congress, house){
       .attr('fill', function(d, i){
         var district = congress.objects.districts.geometries[i].id;
         var distString = district.toString();
-
-        var rep1;
-        if (!distString.includes('69') && !distString.includes('78') &&
-            !distString.includes('72') && district != 6098 && district != 1198) {
-          for (var j=0; j<442; j++) {
-            var rep_home = house[j].district_id;
-            if (distString === rep_home) {
-              rep1 = house[j];
-            } else { console.log(distString); }
-          }
-          if (rep1.party === "R") { return 'red'; }
-          else if (rep1.party === "D") { return 'blue'; }
-          else if (rep1.party === "I") { return 'green'; }
+        if (district < 6000) {
+          var rep = house[distString];
+          if (rep.party === "R") { return 'red'; }
+          else if (rep.party === "D") { return 'blue'; }
+          else if (rep.party === "I") { return 'green'; }
         }
       })
       .on("click", clicked);
@@ -201,7 +189,8 @@ function draw_districts(us, congress, house){
 function clicked(d) {
   if (active.node() === this) return reset();
   active.classed("active", false);
-  active = d3.select(this).classed("active", true);
+  active = d3.select(this)
+      .classed("active", true);
 
   var bounds = path.bounds(d),
       dx = bounds[1][0] - bounds[0][0],
@@ -230,8 +219,7 @@ function reset() {
 }
 
 function zoomed() {
-  g.style("stroke-width", 1.5 / d3.event.scale + "px");
-  g.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+  g.attr("transform", "translate(" + d3.event.translate + ") scale(" + d3.event.scale + ")");
 }
 
 // If the drag behavior prevents the default click,

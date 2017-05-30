@@ -1,44 +1,59 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<style>
+<head>
+    <meta charset="utf-8">
+    <style>
 
-.background {
-  fill: #d8d8d8;
-  pointer-events: all;
-}
+    .background {
+      fill: none;
+      pointer-events: all;
+    }
 
+    h1 {
+      text-align: center;
+    }
 
-.feature {
-  cursor: pointer;
-}
+    .feature {
+      cursor: pointer;
+    }
 
-path {
-  stroke-linejoin: round;
-  stroke-linecap: round;
-}
+    path {
+      stroke-linejoin: round;
+      stroke-linecap: round;
+    }
 
-.districts :hover {
-  fill: orange;
-}
+    .districts {
+      fill-opacity: 1;
+    }
 
+    .districts:hover {
+      fill: orange;
+    }
 
-.district-boundaries {
-  pointer-events: none;
-  fill: none;
-  stroke: #fff;
-  stroke-width: .5px;
-}
+    .active {
+      fill-opacity: 0.7;
+    }
 
-.state-boundaries {
-  pointer-events: none;
-  fill: none;
-  stroke: #fff;
-  stroke-width: 1.5px;
-}
+    .district-boundaries {
+      pointer-events: none;
+      fill: none;
+      stroke: #fff;
+      stroke-width: .5px;
+      vector-effect: non-scaling-stroke;
+    }
 
-</style>
+    .state-boundaries {
+      pointer-events: none;
+      fill: none;
+      stroke: #fff;
+      stroke-width: 1.5px;
+      vector-effect: non-scaling-stroke;
+    }
+    </style>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://d3js.org/topojson.v1.min.js"></script>
+</head>
+
 <body>
-<h1>
-<script src="//d3js.org/d3.v3.min.js"></script>
-<script src="//d3js.org/topojson.v1.min.js"></script>
-<script type="text/javascript" src="statemap.js"></script>
+    <h1>U.S. Congress Data Visualizations</h1>
+    <script type="text/javascript" src="statemap.js"></script>
+</body>
