@@ -115,7 +115,7 @@ def get_members(chamber):
 
 
 def get_committees(chamber):
-    out = []
+    out = [ { 'id': '', 'name': '' } ]
     query = '115/{0}/committees.json'.format(chamber)
     results = api_call(query)
     committees = results['committees']

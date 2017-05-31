@@ -3,7 +3,17 @@ var width = 950,
     active = d3.select(null),
     senateData,
     houseData,
+    usData,
+    congressData,
+    senateComs,
+    houseComs,
     chamber;
+
+var chamberSelect = d3.selectAll('input[name="chamber"]')
+    .on("change", switchChamber);
+
+var attrSelect = d3.selectAll('input[name="attr"]')
+    .on("change", switchAttr);
 
 var committeeSelect = d3.select("#committeeControl").append("select")
     .attr("name", "committee")
@@ -45,20 +55,18 @@ d3.json("data/congressional_districts.json", function(congress) {
   d3.json("data/us.json", function(us) {
     d3.json("data/senate-members.json", function(senate) {
       d3.json("data/house-members.json", function(house) {
-        d3.json("data/senate-committees.json", function(senComs) {
-          d3.json("data/house-committees.json", function(houseComs) {
-            var committeeOptions = committeeSelect.selectAll("option")
-                .data(senComs)
-              .enter()
-                .append("option");
-            committeeOptions.text(function(d) { return d.name; })
-                .attr("value", function(d) { return d.id; });
+        d3.json("data/senate-committees.json", function(senateComsData) {
+          d3.json("data/house-committees.json", function(houseComsData) {
+            senateComs = senateComsData;
+            houseComs = houseComsData;
+            populateCommitteeMenu();
           });
         });
         senateData = senate;
         houseData = house;
-        //draw_districts(us, congress, houseData);
-        draw_states(us, congress, senateData);
+        congressData = congress;
+        usData = us;
+        draw_districts();
       });
     });
     svg.append("defs").append("path")
@@ -72,10 +80,10 @@ d3.json("data/congressional_districts.json", function(congress) {
   });
 });
 
-function draw_states(us, congress, senate, committee) {
+function draw_states() {
   chamber = 'senate';
   g.selectAll("path")
-      .data(topojson.feature(us, us.objects.states).features.filter(function(d) {
+      .data(topojson.feature(usData, usData.objects.states).features.filter(function(d) {
         var state = d.id;
         return state != 'DC' && state != 'PR' && state != 'VI';
       }))
@@ -83,22 +91,9 @@ function draw_states(us, congress, senate, committee) {
       .attr("d", path)
       .attr("class", "feature")
       .attr('id', function(d) { return d.id; })
-      .attr("fill", function(d) {
-        var state = d.id;
-        var sen1 = senate[state + 'a'];
-        var sen2 = senate[state + 'b'];
-        if (sen1.party == 'R' && sen2.party == 'R') { return '#e41a1c'; }
-        else if (sen1.party == 'D' && sen2.party == 'R') { return '#984ea3'; }
-        else if (sen1.party == 'R' && sen2.party == 'D') { return '#984ea3'; }
-        else if (sen1.party == 'D' && sen2.party == 'D') { return '#377eb8'; }
-        else if (sen1.party == 'I' && sen2.party == 'R' ||
-        sen1.party == 'R' && sen2.party == 'I') { return '#fff836'; }
-        else if (sen1.party == 'D' && sen2.party == 'I' ||
-        sen1.party == 'I' && sen2.party == 'D') { return '#00e7e7'; }
-        else if (sen1.party == 'I' && sen2.party == 'I') { return '#4daf4a'; }
-      })
+      .on("click", clicked);
 
-      .on("click", clicked)
+    showPartyAffiliation();
 
   /*
       .on("mouseover", function(d){
@@ -155,59 +150,97 @@ function draw_states(us, congress, senate, committee) {
       */
 
       g.append("path")
-          .datum(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }))
+          .datum(topojson.mesh(usData, usData.objects.states, function(a, b) { return a !== b; }))
           .attr("class", "state-boundaries")
           .attr("d", path);
 }
 
-function draw_districts(us, congress, house, committee) {
+function draw_districts() {
   chamber = 'house';
   g.selectAll("path")
-      .data(topojson.feature(congress, congress.objects.districts).features
+      .data(topojson.feature(congressData, congressData.objects.districts).features
         .filter(function(d) { return d.id < 6000; }))
     .enter().append("path")
-      .attr("class", "districts")
+      .attr("class", "districts feature")
       .attr("clip-path", "url(#clip-land)")
       .attr("d", path)
-      .attr('fill', function(d) {
-        var district = d.id;
-        var distString = district.toString();
-        var rep = house[distString];
-        if (rep.party === "R") { return 'red'; }
-        else if (rep.party === "D") { return 'blue'; }
-        else if (rep.party === "I") { return 'green'; }
-      })
       .on("click", clicked);
+
+  showPartyAffiliation();
 
   g.append("path")
       .attr("class", "district-boundaries")
-      .datum(topojson.mesh(congress, congress.objects.districts, function(a, b) {
+      .datum(topojson.mesh(congressData, congressData.objects.districts, function(a, b) {
         return a !== b && (a.id / 1000 | 0) === (b.id / 1000 | 0);
       }))
       .attr("d", path);
 
   g.append("path")
-      .datum(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }))
+      .datum(topojson.mesh(usData, usData.objects.states, function(a, b) { return a !== b; }))
       .attr("class", "state-boundaries")
       .attr("d", path);
 }
 
-function showQuantitativeAttr(attr) {
+function switchChamber() {
+  chamber = d3.event.target.value;
+  populateCommitteeMenu();
   if (chamber == 'senate') {
-    g.selectAll(".feature")
-        .attr("fill", function(d) {
+    g.selectAll("path").remove();
+    draw_states();
+  } else {
+    g.selectAll("path").remove();
+    draw_districts();
+  }
+}
+
+function switchAttr() {
+  var attr = d3.event.target.value;
+  if (attr == 'party') { showPartyAffiliation(); }
+  else if (attr == 'missed_votes') { showMissedVotesPct(); }
+  else { showVotesWithPartyPct(); }
+}
+
+function showPartyAffiliation() {
+  g.selectAll(".feature")
+    .attr("fill", function(d) {
+      if(chamber == 'senate'){
+        var state = d.id;
+        var sen1 = senateData[state + 'a'];
+        var sen2 = senateData[state + 'b'];
+        if (sen1.party == 'R' && sen2.party == 'R') { return '#e41a1c'; }
+        else if (sen1.party == 'D' && sen2.party == 'R') { return '#984ea3'; }
+        else if (sen1.party == 'R' && sen2.party == 'D') { return '#984ea3'; }
+        else if (sen1.party == 'D' && sen2.party == 'D') { return '#377eb8'; }
+        else if (sen1.party == 'I' && sen2.party == 'R' ||
+        sen1.party == 'R' && sen2.party == 'I') { return '#fff836'; }
+        else if (sen1.party == 'D' && sen2.party == 'I' ||
+        sen1.party == 'I' && sen2.party == 'D') { return '#00e7e7'; }
+        else if (sen1.party == 'I' && sen2.party == 'I') { return '#4daf4a'; }
+      }
+      else {
+        var district = d.id;
+        var distString = district.toString();
+        var rep = houseData[distString];
+        if (rep.party === "R") { return 'red'; }
+        else if (rep.party === "D") { return 'blue'; }
+        else if (rep.party === "I") { return 'green'; }
+      }
+    });
+}
+
+function showQuantitativeAttr(attr) {
+  g.selectAll(".feature")
+      .attr("fill", function(d) {
+        if (chamber == 'senate') {
           var sen1 = senateData[d.id + 'a'];
           var sen2 = senateData[d.id + 'b'];
           var stateStat = (sen1[attr] + sen2[attr]) / 2.0;
           return color(stateStat);
-        });
-  } else if (chamber == 'house') {
-    g.selectAll(".districts")
-        .attr("fill", function(d) {
+        } else if (chamber == 'house') {
           var rep = houseData[d.id];
           return color(rep[attr]);
-        });
-  }
+        }
+      });
 }
 
 function showMissedVotesPct() {
@@ -222,32 +255,49 @@ function showVotesWithPartyPct() {
 
 function showCommittee() {
   var committee = d3.event.target.value;
-  if (chamber == 'senate') {
-    g.selectAll(".feature")
-        .attr("fill", function(d) {
+  if (committee === "") {
+    g.selectAll(".feature").style("fill-opacity", "1");
+    return;
+  }
+  g.selectAll(".feature")
+      .style("fill-opacity", function(d) {
+        if (chamber == 'senate') {
           var sen1 = senateData[d.id + 'a'];
           var sen2 = senateData[d.id + 'b'];
           var sen1Com = sen1.committees.indexOf(committee) !== -1;
           var sen2Com = sen2.committees.indexOf(committee) !== -1;
           if (sen1Com && sen2Com) {
-            return 'green';
+            return "1";
           } else if (sen1Com || sen2Com) {
-            return 'teal';
+            return "0.6";
           } else {
-            return 'gray';
+            return "0.2";
           }
-        });
-  } else if (chamber == 'house') {
-    g.selectAll(".districts")
-        .attr("fill", function(d) {
+        } else if (chamber == 'house') {
           var rep = houseData[d.id];
           if (rep.committees.indexOf(committee) !== -1) {
-            return 'green';
+            return "1";
           } else {
-            return 'gray';
+            return "0.2";
           }
-        });
+        }
+      });
+}
+
+function populateCommitteeMenu() {
+  var data;
+  if (chamber == 'house') {
+    data = houseComs;
+  } else {
+    data = senateComs;
   }
+  committeeSelect.selectAll("option").remove();
+  var committeeOptions = committeeSelect.selectAll("option")
+      .data(data)
+    .enter()
+      .append("option");
+  committeeOptions.text(function(d) { return d.name; })
+      .attr("value", function(d) { return d.id; });
 }
 
 function clicked(d) {

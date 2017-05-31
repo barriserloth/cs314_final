@@ -2,6 +2,9 @@
 <head>
     <meta charset="utf-8">
     <style>
+    body {
+      font-family: sans-serif;
+    }
 
     .background {
       fill: none;
@@ -19,6 +22,11 @@
 
     #control {
       width: 100%;
+    }
+
+    .control {
+      margin-top: 10px;
+      margin-bottom: 10px;
     }
 
     .feature {
@@ -68,15 +76,23 @@
     <div id="main">
         <div id="content"></div>
         <div id="control">
-            <div id="chamberControl">
+            <div id="chamberControl" class="control">
                 Select chamber:
-                <form action="">
+                <form action="" id="chamberForm">
                     <input type="radio" name="chamber" value="house" checked> House<br>
                     <input type="radio" name="chamber" value="senate"> Senate
                 </form>
             </div>
-            <div id="committeeControl">
-                Select committee:<br>
+            <div id="attributeControl" class="control">
+                Select attribute to visualize:
+                <form action="" id="chamberForm">
+                    <input type="radio" name="attr" value="party" checked> Party Affiliation<br>
+                    <input type="radio" name="attr" value="missed_votes"> Missed Votes<br>
+                    <input type="radio" name="attr" value="votes_with_party"> Votes with Party
+                </form>
+            </div>
+            <div id="committeeControl" class="control">
+                Filter by committee:<br>
             </div>
         </div>
     </div>
