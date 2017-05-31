@@ -41,7 +41,7 @@ def main():
     if search == 'members':
         out = get_members(chamber)
     elif search == 'committees':
-        out = get_committee_memberships(chamber)
+        out = get_committees(chamber)
     else:
         out = get_nominees()
 
@@ -114,32 +114,36 @@ def get_members(chamber):
     return out
 
 
-def get_committee_memberships(chamber):
+def get_committees(chamber):
     out = []
-    fieldnames = ['member_id']
-    membership = {}
     query = '115/{0}/committees.json'.format(chamber)
     results = api_call(query)
     committees = results['committees']
     for committee in committees:
+        info = {}
         if verbose:
             print(committee['name'])
+        info['name'] = committee['name']
+        info['url'] = committee['url']
+        info['chair'] = '{0} ({1}-{2})'.format(committee['chair'],
+            committee['chair_party'], committee['chair_state'])
+        subcoms = []
+        for subcom in committee['subcommittees']:
+            subcoms.append(subcom['name'])
+        info['subcommittees'] = subcoms
         com_id = committee['id']
-        fieldnames.append(com_id)
+        info['id'] = com_id
         com_query = '115/{0}/committees/{1}.json'.format(chamber, com_id)
         com_results = api_call(com_query)
         if com_results == None:
             continue
-        members = com_results['current_members']
-        for member in members:
-            member_id = member['id']
-            try:
-                membership[member_id][com_id] = 1
-            except KeyError:
-                membership[member_id] = {'member_id': member_id}
-                membership[member_id][com_id] = 1
-    out.append(fieldnames)
-    out.append(membership)
+        com_members = com_results['current_members']
+        members = []
+        for member in com_members:
+            members.append('{0} ({1}-{2})'.format(member['name'],
+                member['party'], member['state']))
+        info['members'] = members
+        out.append(info)
     return out
 
 
