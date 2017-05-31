@@ -45,16 +45,8 @@ def main():
     else:
         out = get_nominees()
 
-    # out should be in the format [fieldnames, data], where
-    # fieldnames is a list containing the headers of data columns
-    # and data is a dictionary of dictionaries containing the meat of the data
-    fieldnames, data = out
-
-    with open('data/{0}-{1}.csv'.format(chamber, search), 'w') as f:
-        writer = csv.DictWriter(f, fieldnames)
-        writer.writeheader()
-        for row in data.values():
-            writer.writerow(row)
+    with open('data/{0}-{1}.json'.format(chamber, search), 'w') as f:
+        json.dump(out, f, ensure_ascii=False, indent=2)
 
 
 def api_call(query):
@@ -76,15 +68,7 @@ def api_call(query):
 
 
 def get_members(chamber):
-    out = []
-    members_out = {}
-    fieldnames = ['id', 'name', 'age', 'gender', 'party', 'state', 'district',
-        'district_id', 'website', 'twitter', 'seniority', 'bills_sponsored',
-        'bills_cosponsored', 'missed_votes_pct', 'votes_with_party_pct', 'committees']
-    if chamber == 'senate':
-        fieldnames.remove('district')
-        fieldnames.remove('district_id')
-    out.append(fieldnames)
+    out = {}
     query = '115/{0}/members.json'.format(chamber)
     results = api_call(query)
     members = results['members']
@@ -96,7 +80,7 @@ def get_members(chamber):
         role = member_results['roles'][0]
         committees = []
         for committee in role['committees']:
-            committees.append(committee['name'])
+            committees.append(committee['code'])
         info['id'] = member_id
         info['name'] = build_name(member_results['first_name'],
             member_results['middle_name'], member_results['last_name'])
@@ -104,19 +88,29 @@ def get_members(chamber):
         info['gender'] = member_results['gender']
         info['party'] = member_results['current_party']
         info['state'] = member['state']
-        if chamber == 'house':
-            info['district'] = member['district']
-            info['district_id'] = build_district_id(info['state'], info['district'])
         info['website'] = member_results['url']
         info['twitter'] = member_results['twitter_account']
-        info['seniority'] = role['seniority']
-        info['bills_sponsored'] = role['bills_sponsored']
-        info['bills_cosponsored'] = role['bills_cosponsored']
-        info['missed_votes_pct'] = role['missed_votes_pct']
-        info['votes_with_party_pct'] = role['votes_with_party_pct']
-        info['committees'] = ', '.join(committees)
-        members_out[member_id] = info
-    out.append(members_out)
+        info['seniority'] = int(role['seniority'])
+        info['bills_sponsored'] = int(role['bills_sponsored'])
+        info['bills_cosponsored'] = int(role['bills_cosponsored'])
+        try:
+            info['missed_votes_pct'] = float(role['missed_votes_pct'])
+            info['votes_with_party_pct'] = float(role['votes_with_party_pct'])
+        except ValueError:
+            info['missed_votes_pct'] = -100.0
+            info['votes_with_party_pct'] = -100.0
+        info['committees'] = committees
+        if chamber == 'house':
+            info['district'] = member['district']
+            district_id = build_district_id(info['state'], info['district'])
+            out[district_id] = info
+        elif chamber == 'senate':
+            state = info['state']
+            try:
+                other_sen = out[state+'a']
+                out[state+'b'] = info
+            except KeyError:
+                out[state+'a'] = info
     return out
 
 
