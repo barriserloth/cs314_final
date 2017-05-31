@@ -12,6 +12,15 @@
       text-align: center;
     }
 
+    #content {
+      float: left;
+      display: inline-block;
+    }
+
+    #control {
+      width: 100%;
+    }
+
     .feature {
       cursor: pointer;
     }
@@ -56,5 +65,20 @@
 
 <body>
     <h1>U.S. Congress Data Visualizations</h1>
+    <div id="main">
+        <div id="content"></div>
+        <div id="control">
+            <div id="chamberControl">
+                Select chamber:
+                <form action="">
+                    <input type="radio" name="chamber" value="house" checked> House<br>
+                    <input type="radio" name="chamber" value="senate"> Senate
+                </form>
+            </div>
+            <div id="committeeControl">
+                Select committee:<br>
+            </div>
+        </div>
+    </div>
     <script type="text/javascript" src="statemap.js"></script>
 </body>

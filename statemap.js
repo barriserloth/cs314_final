@@ -5,6 +5,10 @@ var width = 950,
     houseData,
     chamber;
 
+var committeeSelect = d3.select("#committeeControl").append("select")
+    .attr("name", "committee")
+    .on("change", showCommittee);
+
 var color = d3.scale.linear()
     .domain([0, 25, 50, 75, 100])
     .range(colorbrewer.PuRd[5]);
@@ -22,7 +26,7 @@ var zoom = d3.behavior.zoom()
 var path = d3.geo.path()
     .projection(projection);
 
-var svg = d3.select("body").append("svg")
+var svg = d3.select("#content").append("svg")
     .attr("width", width)
     .attr("height", height)
     .on("click", stopped, true);
@@ -41,12 +45,22 @@ d3.json("data/congressional_districts.json", function(congress) {
   d3.json("data/us.json", function(us) {
     d3.json("data/senate-members.json", function(senate) {
       d3.json("data/house-members.json", function(house) {
+        d3.json("data/senate-committees.json", function(senComs) {
+          d3.json("data/house-committees.json", function(houseComs) {
+            var committeeOptions = committeeSelect.selectAll("option")
+                .data(senComs)
+              .enter()
+                .append("option");
+            committeeOptions.text(function(d) { return d.name; })
+                .attr("value", function(d) { return d.id; });
+          });
+        });
         senateData = senate;
         houseData = house;
         //draw_districts(us, congress, houseData);
         draw_states(us, congress, senateData);
-      })
-    })
+      });
+    });
     svg.append("defs").append("path")
       .attr("id", "land")
       .datum(topojson.feature(us, us.objects.land))
@@ -55,7 +69,7 @@ d3.json("data/congressional_districts.json", function(congress) {
       .attr("id", "clip-land")
     .append("use")
       .attr("xlink:href", "#land");
-  })
+  });
 });
 
 function draw_states(us, congress, senate, committee) {
@@ -149,7 +163,8 @@ function draw_states(us, congress, senate, committee) {
 function draw_districts(us, congress, house, committee) {
   chamber = 'house';
   g.selectAll("path")
-      .data(topojson.feature(congress, congress.objects.districts).features)
+      .data(topojson.feature(congress, congress.objects.districts).features
+        .filter(function(d) { return d.id < 6000; }))
     .enter().append("path")
       .attr("class", "districts")
       .attr("clip-path", "url(#clip-land)")
@@ -157,12 +172,10 @@ function draw_districts(us, congress, house, committee) {
       .attr('fill', function(d) {
         var district = d.id;
         var distString = district.toString();
-        if (district < 6000) {
-          var rep = house[distString];
-          if (rep.party === "R") { return 'red'; }
-          else if (rep.party === "D") { return 'blue'; }
-          else if (rep.party === "I") { return 'green'; }
-        }
+        var rep = house[distString];
+        if (rep.party === "R") { return 'red'; }
+        else if (rep.party === "D") { return 'blue'; }
+        else if (rep.party === "I") { return 'green'; }
       })
       .on("click", clicked);
 
@@ -205,6 +218,36 @@ function showMissedVotesPct() {
 function showVotesWithPartyPct() {
   color.domain([72, 79, 86, 93, 100]);
   showQuantitativeAttr('votes_with_party_pct');
+}
+
+function showCommittee() {
+  var committee = d3.event.target.value;
+  if (chamber == 'senate') {
+    g.selectAll(".feature")
+        .attr("fill", function(d) {
+          var sen1 = senateData[d.id + 'a'];
+          var sen2 = senateData[d.id + 'b'];
+          var sen1Com = sen1.committees.indexOf(committee) !== -1;
+          var sen2Com = sen2.committees.indexOf(committee) !== -1;
+          if (sen1Com && sen2Com) {
+            return 'green';
+          } else if (sen1Com || sen2Com) {
+            return 'teal';
+          } else {
+            return 'gray';
+          }
+        });
+  } else if (chamber == 'house') {
+    g.selectAll(".districts")
+        .attr("fill", function(d) {
+          var rep = houseData[d.id];
+          if (rep.committees.indexOf(committee) !== -1) {
+            return 'green';
+          } else {
+            return 'gray';
+          }
+        });
+  }
 }
 
 function clicked(d) {
