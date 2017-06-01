@@ -123,7 +123,7 @@ function draw_states() {
             .attr("stroke-opacity", 0.9);
 
         svg2.append("text")
-          .attr('x', 182.5)
+          .attr('x', '50%')
           .attr('class', 'sen1')
           .attr('y', height/8-40)
           .attr("text-anchor", "middle")
@@ -136,8 +136,60 @@ function draw_states() {
           });
 
         svg2.append("text")
+          .attr('x', '50%')
+          .attr("text-anchor", "middle")
+          .attr('dy', '50px')
+          .text(function(){
+            state = d.id;
+            senator = senateData[state+'a']
+            senInfo = "Bills Sponsored: " + senator.bills_sponsored;
+            return senInfo;
+          });
+        svg2.append("text")
+          .attr('x', '50%')
+          .attr("text-anchor", "middle")
+          .attr('dy', '70px')
+          .text(function(){
+            state = d.id;
+            senator = senateData[state+'a']
+            senInfo = "Votes With Party: " + senator.votes_with_party_pct + '%';
+            return senInfo;
+          });
+        svg2.append("text")
+          .attr('x', '50%')
+          .attr("text-anchor", "middle")
+          .attr('dy', '90px')
+          .text(function(){
+            state = d.id;
+            senator = senateData[state+'a']
+            senInfo = "Missed Votes: " + senator.missed_votes_pct + '%';
+            return senInfo;
+          });
+        svg2.append("text")
+          .attr('x', '50%')
+          .attr("text-anchor", "middle")
+          .attr('dy', '110px')
+          .text(function(){
+            state = d.id;
+            senator = senateData[state+'a']
+            senInfo = "Seniority: " + senator.seniority;
+            return senInfo;
+          });
+        svg2.append("text")
+          .attr('x', '50%')
+          .attr("text-anchor", "middle")
+          .attr('dy', '130px')
+          .text(function(){
+            state = d.id;
+            senator = senateData[state+'a']
+            senInfo = "Age: " + senator.age;
+            return senInfo;
+          });
+
+
+        svg2.append("text")
           .attr("class", "sen2")
-          .attr('x', 182.5)
+          .attr('x', '50%')
           .attr('y', 175)
           .attr("text-anchor", "middle")
           .attr("font-weight", "bolder")
@@ -147,6 +199,62 @@ function draw_states() {
             senNames = senator.name + ' (' + senator.party + ')'
             return senNames;
           });
+
+          svg2.append("text")
+            .attr('x', '50%')
+            .attr('y', 150)
+            .attr("text-anchor", "middle")
+            .attr('dy', '50px')
+            .text(function(){
+              state = d.id;
+              senator = senateData[state+'b']
+              senInfo = "Bills Sponsored: " + senator.bills_sponsored;
+              return senInfo;
+            });
+          svg2.append("text")
+            .attr('x', '50%')
+            .attr('y', 150)
+            .attr("text-anchor", "middle")
+            .attr('dy', '70px')
+            .text(function(){
+              state = d.id;
+              senator = senateData[state+'b']
+              senInfo = "Votes With Party: " + senator.votes_with_party_pct + '%';
+              return senInfo;
+            });
+          svg2.append("text")
+            .attr('x', '50%')
+            .attr('y', 150)
+            .attr("text-anchor", "middle")
+            .attr('dy', '90px')
+            .text(function(){
+              state = d.id;
+              senator = senateData[state+'b']
+              senInfo = "Missed Votes: " + senator.missed_votes_pct + '%';
+              return senInfo;
+            });
+          svg2.append("text")
+            .attr('x', '50%')
+            .attr('y', 150)
+            .attr("text-anchor", "middle")
+            .attr('dy', '110px')
+            .text(function(){
+              state = d.id;
+              senator = senateData[state+'b']
+              senInfo = "Seniority: " + senator.seniority;
+              return senInfo;
+            });
+          svg2.append("text")
+            .attr('x', '50%')
+            .attr('y', 150)
+            .attr("text-anchor", "middle")
+            .attr('dy', '130px')
+            .text(function(){
+              state = d.id;
+              senator = senateData[state+'b']
+              senInfo = "Age: " + senator.age;
+              return senInfo;
+            });
       })
       .on("mouseout", function(d){
         svg2.selectAll("rect")
@@ -156,60 +264,6 @@ function draw_states() {
       });
 
     showPartyAffiliation();
-
-  /*
-      .on("mouseover", function(d){
-        var descrip = svg.append('g')
-          .attr('class', 'dummy_g');
-
-        descrip.append('rect')
-            .attr('class', 'sendescrip')
-            .attr('width', width/5)
-            .attr('height', height)
-            .attr("transform", "translate(" + (width-width/5) +  ",0)");
-
-        if (!zoom_c) d3.select("h1").text(statename(d));
-
-        descrip.append("text")
-            .attr('class', 'sendescriph1')
-            .attr('x', width-width/5+10)
-            .attr("y", 20)
-            .attr("dy", ".35em")
-            .text(sen_header(d, senate, 0));
-
-        var sen_image_one = sen_header(d, senate, 0).replace(' ', '_');
-        descrip.append("svg:image")
-           .attr('x', width-width/5+20)
-           .attr('y', 50)
-           .attr('width', 100)
-           .attr('height', 152)
-           .attr("xlink:href","images/" + sen_image_one + ".jpg")
-
-        descrip.append("text")
-            .attr('class', 'sendescriph2')
-            .attr('x', width-width/5+10)
-            .attr("y", height / 2)
-            .attr("dy", ".35em")
-            .text(sen_header(d, senate, 1));
-
-      var sen_image_two = sen_header(d, senate, 1).replace(' ', '_');
-      descrip.append("svg:image")
-         .attr('x', width-width/5+20)
-         .attr('y', (height/2 + 30))
-         .attr('width', 100)
-         .attr('height', 152)
-         .attr("xlink:href","images/" + sen_image_two + ".jpg")
-
-      })
-      .on("mouseout", function(d){
-          d3.select("h1").text('');
-          svg.selectAll('.dummy_g').remove();
-          svg.selectAll('.sendescrip').remove();
-          svg.selectAll('.sendescriph1').remove();
-          svg.selectAll('.sendescriph2').remove();
-
-      });
-      */
 
       g.append("path")
           .datum(topojson.mesh(usData, usData.objects.states, function(a, b) { return a !== b; }))
@@ -240,7 +294,7 @@ function draw_districts() {
             .attr("stroke-opacity", 0.9);
 
         svg2.append("text")
-          .attr('x', 182.5)
+          .attr('x', "50%")
           .attr('class', 'rep')
           .attr('y', height/8-40)
           .attr("text-anchor", "middle")
@@ -252,6 +306,57 @@ function draw_districts() {
             return repNames;
           });
 
+          svg2.append("text")
+            .attr('x', '50%')
+            .attr("text-anchor", "middle")
+            .attr('dy', '50px')
+            .text(function(){
+              state = d.id;
+              rep = houseData[state]
+              repInfo = "Bills Sponsored: " + rep.bills_sponsored;
+              return repInfo;
+            });
+          svg2.append("text")
+            .attr('x', '50%')
+            .attr("text-anchor", "middle")
+            .attr('dy', '70px')
+            .text(function(){
+              state = d.id;
+              rep = houseData[state]
+              repInfo = "Votes With Party: " + rep.votes_with_party_pct + '%';
+              return repInfo;
+            });
+          svg2.append("text")
+            .attr('x', '50%')
+            .attr("text-anchor", "middle")
+            .attr('dy', '90px')
+            .text(function(){
+              state = d.id;
+              rep = houseData[state]
+              repInfo = "Missed Votes: " + rep.missed_votes_pct + '%';
+              return repInfo;
+            });
+          svg2.append("text")
+            .attr('x', '50%')
+            .attr("text-anchor", "middle")
+            .attr('dy', '110px')
+            .text(function(){
+              state = d.id;
+              rep = houseData[state]
+              repInfo = "Seniority: " + rep.seniority;
+              return repInfo;
+            });
+          svg2.append("text")
+            .attr('x', '50%')
+            .attr("text-anchor", "middle")
+            .attr('dy', '130px')
+            .text(function(){
+              state = d.id;
+              rep = houseData[state]
+              repInfo = "Age: " + rep.age;
+              return repInfo;
+            });
+
       })
       .on("mouseout", function(d){
         svg2.selectAll("rect")
@@ -259,7 +364,6 @@ function draw_districts() {
         svg2.selectAll("text")
           .remove();
       });
-;
 
   showPartyAffiliation();
 
