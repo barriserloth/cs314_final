@@ -48,18 +48,11 @@ svg.append("rect")
     .on("click", reset);
 
 var svg2 = d3.select("#tooltip").append("svg")
-  .attr('width', width)
-  .attr('height', height/4)
+  .attr('width', width/2-90)
+  .attr('height', height/2+25)
 
 //style="fill:blue;stroke:pink;stroke-width:5;fill-opacity:0.1;stroke-opacity:0.9" />
-svg2.append("rect")
-    .attr("width", width)
-    .attr("height", height/4)
-    .attr("fill", "blue")
-    .attr("stroke", "pink")
-    .attr("stroke-width", 5)
-    .attr("fill-opacity", 0.1)
-    .attr("stroke-opacity", 0.9);
+
 
 var g = svg.append("g");
 
@@ -107,14 +100,59 @@ function draw_states() {
       .attr('id', function(d) { return d.id; })
       .on("click", clicked)
       .on("mouseover", function(d){
+        svg2.append("rect")
+            .attr('x', 5)
+            .attr('y', 5)
+            .attr("width", width/2-100)
+            .attr("height", height/4)
+            .attr("fill", "blue")
+            .attr("stroke", "pink")
+            .attr("stroke-width", 5)
+            .attr("fill-opacity", 0.1)
+            .attr("stroke-opacity", 0.9);
+
+        svg2.append("rect")
+            .attr("width", width/2-100)
+            .attr("height", height/4)
+            .attr('x', 5)
+            .attr("y", height/2-height/4+15)
+            .attr("fill", "blue")
+            .attr("stroke", "pink")
+            .attr("stroke-width", 5)
+            .attr("fill-opacity", 0.1)
+            .attr("stroke-opacity", 0.9);
+
         svg2.append("text")
-          .attr('x', 200)
-          .attr('y', height/8)
+          .attr('x', 182.5)
+          .attr('class', 'sen1')
+          .attr('y', height/8-40)
+          .attr("text-anchor", "middle")
+          .attr("font-weight", "bolder")
           .text(function(){
             state = d.id;
-            senNames = senateData[state + 'a'].name + " " + senateData[state + 'b'].name;
+            senator = senateData[state+'a']
+            senNames = senator.name + ' (' + senator.party + ')'
             return senNames;
-          })
+          });
+
+        svg2.append("text")
+          .attr("class", "sen2")
+          .attr('x', 182.5)
+          .attr('y', 175)
+          .attr("text-anchor", "middle")
+          .attr("font-weight", "bolder")
+          .text(function(){
+            state = d.id;
+            senator = senateData[state+'b']
+            senNames = senator.name + ' (' + senator.party + ')'
+            return senNames;
+          });
+      })
+      .on("mouseout", function(d){
+        svg2.selectAll("rect")
+          .remove();
+        svg2.selectAll("text")
+          .remove();
       });
 
     showPartyAffiliation();
@@ -188,7 +226,40 @@ function draw_districts() {
       .attr("class", "districts feature")
       .attr("clip-path", "url(#clip-land)")
       .attr("d", path)
-      .on("click", clicked);
+      .on("click", clicked)
+      .on("mouseover", function(d){
+        svg2.append("rect")
+            .attr('x', 5)
+            .attr('y', 5)
+            .attr("width", width/2-100)
+            .attr("height", height/4)
+            .attr("fill", "blue")
+            .attr("stroke", "pink")
+            .attr("stroke-width", 5)
+            .attr("fill-opacity", 0.1)
+            .attr("stroke-opacity", 0.9);
+
+        svg2.append("text")
+          .attr('x', 182.5)
+          .attr('class', 'rep')
+          .attr('y', height/8-40)
+          .attr("text-anchor", "middle")
+          .attr("font-weight", "bolder")
+          .text(function(){
+            state = d.id;
+            rep = houseData[state]
+            repNames = rep.name + ' (' + rep.party + ')'
+            return repNames;
+          });
+
+      })
+      .on("mouseout", function(d){
+        svg2.selectAll("rect")
+          .remove();
+        svg2.selectAll("text")
+          .remove();
+      });
+;
 
   showPartyAffiliation();
 
