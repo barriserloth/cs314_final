@@ -47,6 +47,20 @@ svg.append("rect")
     .attr("height", height)
     .on("click", reset);
 
+var svg2 = d3.select("#tooltip").append("svg")
+  .attr('width', width)
+  .attr('height', height/4)
+
+//style="fill:blue;stroke:pink;stroke-width:5;fill-opacity:0.1;stroke-opacity:0.9" />
+svg2.append("rect")
+    .attr("width", width)
+    .attr("height", height/4)
+    .attr("fill", "blue")
+    .attr("stroke", "pink")
+    .attr("stroke-width", 5)
+    .attr("fill-opacity", 0.1)
+    .attr("stroke-opacity", 0.9);
+
 var g = svg.append("g");
 
 svg.call(zoom.event);
@@ -91,7 +105,17 @@ function draw_states() {
       .attr("d", path)
       .attr("class", "feature")
       .attr('id', function(d) { return d.id; })
-      .on("click", clicked);
+      .on("click", clicked)
+      .on("mouseover", function(d){
+        svg2.append("text")
+          .attr('x', 200)
+          .attr('y', height/8)
+          .text(function(){
+            state = d.id;
+            senNames = senateData[state + 'a'].name + " " + senateData[state + 'b'].name;
+            return senNames;
+          })
+      });
 
     showPartyAffiliation();
 
@@ -362,162 +386,4 @@ function sen_header(d, senate, check){
   }
   if(check == 0) return sen1.first_name + ' ' + sen1.last_name;
   else return sen2.first_name + ' ' + sen2.last_name;
-}
-
-function statename(d){
-  switch (d.id)
-        {
-            case 'AL':
-                return "ALABAMA";
-
-            case 'AK':
-                return "ALASKA";
-
-            case 'AZ':
-                return "ARIZONA";
-
-            case 'AR':
-                return "ARKANSAS";
-
-            case 'CA':
-                return "CALIFORNIA";
-
-            case 'CO':
-                return "COLORADO";
-
-            case 'CT':
-                return "CONNECTICUT";
-
-            case 'DE':
-                return "DELAWARE";
-
-            case 'DC':
-                return "DISTRICT OF COLUMBIA";
-
-            case 'FL':
-                return "FLORIDA";
-
-            case 'GA':
-                return "GEORGIA";
-
-            case 'HI':
-                return "HAWAII";
-
-            case 'ID':
-                return "IDAHO";
-
-            case 'IL':
-                return "ILLINOIS";
-
-            case 'IN':
-                return "INDIANA";
-
-            case 'IA':
-                return "IOWA";
-
-            case 'KS':
-                return "KANSAS";
-
-            case 'KY':
-                return "KENTUCKY";
-
-            case 'LA':
-                return "LOUISIANA";
-
-            case 'ME':
-                return "MAINE";
-
-            case 'MD':
-                return "MARYLAND";
-
-            case 'MA':
-                return "MASSACHUSETTS";
-
-            case 'MI':
-                return "MICHIGAN";
-
-            case 'MN':
-                return "MINNESOTA";
-
-            case 'MS':
-                return "MISSISSIPPI";
-
-            case 'MO':
-                return "MISSOURI";
-
-            case 'MT':
-                return "MONTANA";
-
-            case 'NE':
-                return "NEBRASKA";
-
-            case 'NV':
-                return "NEVADA";
-
-            case 'NH':
-                return "NEW HAMPSHIRE";
-
-            case 'NJ':
-                return "NEW JERSEY";
-
-            case 'NM':
-                return "NEW MEXICO";
-
-            case 'NY':
-                return "NEW YORK";
-
-            case 'NC':
-                return "NORTH CAROLINA";
-
-            case 'ND':
-                return "NORTH DAKOTA";
-
-            case 'OH':
-                return "OHIO";
-
-            case 'OK':
-                return "OKLAHOMA";
-
-            case 'OR':
-                return "OREGON";
-
-            case 'PA':
-                return "PENNSYLVANIA";
-
-            case 'RI':
-                return "RHODE ISLAND";
-
-            case 'SC':
-                return "SOUTH CAROLINA";
-
-            case 'SD':
-                return "SOUTH DAKOTA";
-
-            case 'TN':
-                return "TENNESSEE";
-
-            case 'TX':
-                return "TEXAS";
-
-            case 'UT':
-                return "UTAH";
-
-            case 'VT':
-                return "VERMONT";
-
-            case 'VA':
-                return "VIRGINIA";
-
-            case 'WA':
-                return "WASHINGTON";
-
-            case 'WV':
-                return "WEST VIRGINIA";
-
-            case 'WI':
-                return "WISCONSIN";
-
-            case 'WY':
-                return "WYOMING";
-        }
 }
