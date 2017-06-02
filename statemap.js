@@ -5,6 +5,7 @@ var width = 950,
     houseData,
     usData,
     congressData,
+    nomData,
     senateComs,
     houseComs,
     chamber,
@@ -26,6 +27,11 @@ var attrSelect = d3.selectAll('input[name="attr"]')
 var committeeSelect = d3.select("#committeeControl").append("select")
     .attr("name", "committee")
     .on("change", showCommittee);
+
+var nomineeSelect = d3.select("#nomineeControl").append("select")
+    .attr("name", "nominee")
+    .attr('disabled', true)
+    .on("change", showNominee);
 
 var sequentialColors = colorbrewer.PuRd[5];
 
@@ -71,6 +77,10 @@ d3.json("data/congressional_districts.json", function(congress) {
       d3.json("data/house-members.json", function(house) {
         d3.json("data/senate-committees.json", function(senateComsData) {
           d3.json("data/house-committees.json", function(houseComsData) {
+            d3.json("data/nominations.json", function(nomineeData){
+                nomData = nomineeData;
+                populateNomineeMenu();
+            });
             senateComs = senateComsData;
             houseComs = houseComsData;
             populateCommitteeMenu();
@@ -166,27 +176,35 @@ function draw_districts() {
 
 function switchViews() {
   var disabled;
+  var nomDisable;
   if (view === 'default') {
     view = 'nominees';
     disabled = true;
+    nomDisable = null;
     showNominees();
   }
   else {
     view = 'default';
     disabled = null;
+    nomDisable = true;
+    g.selectAll('path').remove();
     if(chamber == 'senate'){ draw_states(); }
     else { draw_districts(); }
     if(radioAttr == 'party'){ showPartyAffiliation(); }
     else if(radioAttr == 'missed_votes'){ showMissedVotesPct(); }
     else { showVotesWithPartyPct(); }
   }
+
   chamberSelect.attr('disabled', disabled);
   attrSelect.attr('disabled', disabled);
   committeeSelect.attr('disabled', disabled);
+  nomineeSelect.attr('disabled', nomDisable);
 }
 
 function showNominees() {
   g.selectAll("path").remove();
+  legend.selectAll('rect').remove();
+  legend.selectAll('text').remove();
   g.selectAll("path")
       .data(topojson.feature(usData, usData.objects.states).features.filter(function(d) {
         var state = d.id;
@@ -194,13 +212,27 @@ function showNominees() {
       }))
       .enter().append("path")
         .attr("d", path)
-        .attr("class", "feature")
-        .attr('id', function(d) { return d.id; })
-        .attr('fill', 'gray');
+        .attr("class", "feature");
+
+  drawNominees();
+
   g.append("path")
       .datum(topojson.mesh(usData, usData.objects.states, function(a, b) { return a !== b; }))
       .attr("class", "state-boundaries")
       .attr("d", path);
+}
+
+function drawNominees() {
+  g.selectAll(".feature")
+    .attr('fill', function(d,i){
+      var state = d.id;
+      for(var i=1; i<36; i++){
+        var nom = nomData[i].state;
+        if(nom == state){
+          return 'green';
+        }
+      }
+    });
 }
 
 function switchChamber() {
@@ -338,6 +370,40 @@ function populateCommitteeMenu() {
       .append("option");
   committeeOptions.text(function(d) { return d.name; })
       .attr("value", function(d) { return d.id; });
+}
+
+function showNominee() {
+  var roll = d3.event.target.value;
+  if (roll === "") {
+    g.selectAll(".feature")
+    .style('fill', function(d){
+      drawNominees();
+    })
+    return;
+  }
+  g.selectAll(".feature")
+      .style('fill', function(d){
+          for(var i=1; i<36; i++){
+            if(nomData[i].roll_call == roll){
+              nom = nomData[i]
+              if(nom.state == d.id){
+                return "green";
+              }
+            }
+          }
+          return "gray";
+      })
+}
+
+function populateNomineeMenu() {
+  var nomOptions = nomineeSelect.selectAll("option")
+      .data(nomData)
+    .enter()
+      .append("option");
+  nomOptions.text(function(d) { return d.position; })
+    .attr('value', function(d) {
+      return d.roll_call;
+    });
 }
 
 function appendTextToTooltip(text, y, dy) {
