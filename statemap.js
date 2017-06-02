@@ -7,7 +7,15 @@ var width = 950,
     congressData,
     senateComs,
     houseComs,
-    chamber;
+    chamber,
+    radioAttr = 'party',
+    legendData,
+    view = 'default';
+
+var legend = d3.select('#legend').append('svg')
+    .attr('width', 950)
+    .attr('height', 44)
+    .style('fill', 'none');
 
 var chamberSelect = d3.selectAll('input[name="chamber"]')
     .on("change", switchChamber);
@@ -19,9 +27,11 @@ var committeeSelect = d3.select("#committeeControl").append("select")
     .attr("name", "committee")
     .on("change", showCommittee);
 
+var sequentialColors = colorbrewer.PuRd[5];
+
 var color = d3.scale.linear()
     .domain([0, 25, 50, 75, 100])
-    .range(colorbrewer.PuRd[5]);
+    .range(sequentialColors);
 
 var zoom_c = false;
 
@@ -47,12 +57,9 @@ svg.append("rect")
     .attr("height", height)
     .on("click", reset);
 
-var svg2 = d3.select("#tooltip").append("svg")
+var tooltip = d3.select("#tooltip").append("svg")
   .attr('width', width/2-90)
   .attr('height', height/2+25)
-
-//style="fill:blue;stroke:pink;stroke-width:5;fill-opacity:0.1;stroke-opacity:0.9" />
-
 
 var g = svg.append("g");
 
@@ -100,175 +107,24 @@ function draw_states() {
       .attr('id', function(d) { return d.id; })
       .on("click", clicked)
       .on("mouseover", function(d){
-        svg2.append("rect")
-            .attr('x', 5)
-            .attr('y', 5)
-            .attr("width", width/2-100)
-            .attr("height", height/4)
-            .attr("fill", "blue")
-            .attr("stroke", "pink")
-            .attr("stroke-width", 5)
-            .attr("fill-opacity", 0.1)
-            .attr("stroke-opacity", 0.9);
-
-        svg2.append("rect")
-            .attr("width", width/2-100)
-            .attr("height", height/4)
-            .attr('x', 5)
-            .attr("y", height/2-height/4+15)
-            .attr("fill", "blue")
-            .attr("stroke", "pink")
-            .attr("stroke-width", 5)
-            .attr("fill-opacity", 0.1)
-            .attr("stroke-opacity", 0.9);
-
-        svg2.append("text")
-          .attr('x', '50%')
-          .attr('class', 'sen1')
-          .attr('y', height/8-40)
-          .attr("text-anchor", "middle")
-          .attr("font-weight", "bolder")
-          .text(function(){
-            state = d.id;
-            senator = senateData[state+'a']
-            senNames = senator.name + ' (' + senator.party + ')'
-            return senNames;
-          });
-
-        svg2.append("text")
-          .attr('x', '50%')
-          .attr("text-anchor", "middle")
-          .attr('dy', '50px')
-          .text(function(){
-            state = d.id;
-            senator = senateData[state+'a']
-            senInfo = "Bills Sponsored: " + senator.bills_sponsored;
-            return senInfo;
-          });
-        svg2.append("text")
-          .attr('x', '50%')
-          .attr("text-anchor", "middle")
-          .attr('dy', '70px')
-          .text(function(){
-            state = d.id;
-            senator = senateData[state+'a']
-            senInfo = "Votes With Party: " + senator.votes_with_party_pct + '%';
-            return senInfo;
-          });
-        svg2.append("text")
-          .attr('x', '50%')
-          .attr("text-anchor", "middle")
-          .attr('dy', '90px')
-          .text(function(){
-            state = d.id;
-            senator = senateData[state+'a']
-            senInfo = "Missed Votes: " + senator.missed_votes_pct + '%';
-            return senInfo;
-          });
-        svg2.append("text")
-          .attr('x', '50%')
-          .attr("text-anchor", "middle")
-          .attr('dy', '110px')
-          .text(function(){
-            state = d.id;
-            senator = senateData[state+'a']
-            senInfo = "Seniority: " + senator.seniority;
-            return senInfo;
-          });
-        svg2.append("text")
-          .attr('x', '50%')
-          .attr("text-anchor", "middle")
-          .attr('dy', '130px')
-          .text(function(){
-            state = d.id;
-            senator = senateData[state+'a']
-            senInfo = "Age: " + senator.age;
-            return senInfo;
-          });
-
-
-        svg2.append("text")
-          .attr("class", "sen2")
-          .attr('x', '50%')
-          .attr('y', 175)
-          .attr("text-anchor", "middle")
-          .attr("font-weight", "bolder")
-          .text(function(){
-            state = d.id;
-            senator = senateData[state+'b']
-            senNames = senator.name + ' (' + senator.party + ')'
-            return senNames;
-          });
-
-          svg2.append("text")
-            .attr('x', '50%')
-            .attr('y', 150)
-            .attr("text-anchor", "middle")
-            .attr('dy', '50px')
-            .text(function(){
-              state = d.id;
-              senator = senateData[state+'b']
-              senInfo = "Bills Sponsored: " + senator.bills_sponsored;
-              return senInfo;
-            });
-          svg2.append("text")
-            .attr('x', '50%')
-            .attr('y', 150)
-            .attr("text-anchor", "middle")
-            .attr('dy', '70px')
-            .text(function(){
-              state = d.id;
-              senator = senateData[state+'b']
-              senInfo = "Votes With Party: " + senator.votes_with_party_pct + '%';
-              return senInfo;
-            });
-          svg2.append("text")
-            .attr('x', '50%')
-            .attr('y', 150)
-            .attr("text-anchor", "middle")
-            .attr('dy', '90px')
-            .text(function(){
-              state = d.id;
-              senator = senateData[state+'b']
-              senInfo = "Missed Votes: " + senator.missed_votes_pct + '%';
-              return senInfo;
-            });
-          svg2.append("text")
-            .attr('x', '50%')
-            .attr('y', 150)
-            .attr("text-anchor", "middle")
-            .attr('dy', '110px')
-            .text(function(){
-              state = d.id;
-              senator = senateData[state+'b']
-              senInfo = "Seniority: " + senator.seniority;
-              return senInfo;
-            });
-          svg2.append("text")
-            .attr('x', '50%')
-            .attr('y', 150)
-            .attr("text-anchor", "middle")
-            .attr('dy', '130px')
-            .text(function(){
-              state = d.id;
-              senator = senateData[state+'b']
-              senInfo = "Age: " + senator.age;
-              return senInfo;
-            });
+        makeTooltip(d, 'a');
+        makeTooltip(d, 'b');
       })
       .on("mouseout", function(d){
-        svg2.selectAll("rect")
+        tooltip.selectAll("rect")
           .remove();
-        svg2.selectAll("text")
+        tooltip.selectAll("text")
           .remove();
       });
 
-    showPartyAffiliation();
+    if(radioAttr == 'party'){ showPartyAffiliation(); }
+    else if(radioAttr == 'missed_votes'){ showMissedVotesPct(); }
+    else { showVotesWithPartyPct(); }
 
-      g.append("path")
-          .datum(topojson.mesh(usData, usData.objects.states, function(a, b) { return a !== b; }))
-          .attr("class", "state-boundaries")
-          .attr("d", path);
+    g.append("path")
+        .datum(topojson.mesh(usData, usData.objects.states, function(a, b) { return a !== b; }))
+        .attr("class", "state-boundaries")
+        .attr("d", path);
 }
 
 function draw_districts() {
@@ -282,90 +138,18 @@ function draw_districts() {
       .attr("d", path)
       .on("click", clicked)
       .on("mouseover", function(d){
-        svg2.append("rect")
-            .attr('x', 5)
-            .attr('y', 5)
-            .attr("width", width/2-100)
-            .attr("height", height/4)
-            .attr("fill", "blue")
-            .attr("stroke", "pink")
-            .attr("stroke-width", 5)
-            .attr("fill-opacity", 0.1)
-            .attr("stroke-opacity", 0.9);
-
-        svg2.append("text")
-          .attr('x', "50%")
-          .attr('class', 'rep')
-          .attr('y', height/8-40)
-          .attr("text-anchor", "middle")
-          .attr("font-weight", "bolder")
-          .text(function(){
-            state = d.id;
-            rep = houseData[state]
-            repNames = rep.name + ' (' + rep.party + ')'
-            return repNames;
-          });
-
-          svg2.append("text")
-            .attr('x', '50%')
-            .attr("text-anchor", "middle")
-            .attr('dy', '50px')
-            .text(function(){
-              state = d.id;
-              rep = houseData[state]
-              repInfo = "Bills Sponsored: " + rep.bills_sponsored;
-              return repInfo;
-            });
-          svg2.append("text")
-            .attr('x', '50%')
-            .attr("text-anchor", "middle")
-            .attr('dy', '70px')
-            .text(function(){
-              state = d.id;
-              rep = houseData[state]
-              repInfo = "Votes With Party: " + rep.votes_with_party_pct + '%';
-              return repInfo;
-            });
-          svg2.append("text")
-            .attr('x', '50%')
-            .attr("text-anchor", "middle")
-            .attr('dy', '90px')
-            .text(function(){
-              state = d.id;
-              rep = houseData[state]
-              repInfo = "Missed Votes: " + rep.missed_votes_pct + '%';
-              return repInfo;
-            });
-          svg2.append("text")
-            .attr('x', '50%')
-            .attr("text-anchor", "middle")
-            .attr('dy', '110px')
-            .text(function(){
-              state = d.id;
-              rep = houseData[state]
-              repInfo = "Seniority: " + rep.seniority;
-              return repInfo;
-            });
-          svg2.append("text")
-            .attr('x', '50%')
-            .attr("text-anchor", "middle")
-            .attr('dy', '130px')
-            .text(function(){
-              state = d.id;
-              rep = houseData[state]
-              repInfo = "Age: " + rep.age;
-              return repInfo;
-            });
-
+        makeTooltip(d);
       })
       .on("mouseout", function(d){
-        svg2.selectAll("rect")
+        tooltip.selectAll("rect")
           .remove();
-        svg2.selectAll("text")
+        tooltip.selectAll("text")
           .remove();
       });
 
-  showPartyAffiliation();
+  if(radioAttr == 'party'){ showPartyAffiliation(); }
+  else if(radioAttr == 'missed_votes'){ showMissedVotesPct(); }
+  else { showVotesWithPartyPct(); }
 
   g.append("path")
       .attr("class", "district-boundaries")
@@ -374,6 +158,45 @@ function draw_districts() {
       }))
       .attr("d", path);
 
+  g.append("path")
+      .datum(topojson.mesh(usData, usData.objects.states, function(a, b) { return a !== b; }))
+      .attr("class", "state-boundaries")
+      .attr("d", path);
+}
+
+function switchViews() {
+  var disabled;
+  if (view === 'default') {
+    view = 'nominees';
+    disabled = true;
+    showNominees();
+  }
+  else {
+    view = 'default';
+    disabled = null;
+    if(chamber == 'senate'){ draw_states(); }
+    else { draw_districts(); }
+    if(radioAttr == 'party'){ showPartyAffiliation(); }
+    else if(radioAttr == 'missed_votes'){ showMissedVotesPct(); }
+    else { showVotesWithPartyPct(); }
+  }
+  chamberSelect.attr('disabled', disabled);
+  attrSelect.attr('disabled', disabled);
+  committeeSelect.attr('disabled', disabled);
+}
+
+function showNominees() {
+  g.selectAll("path").remove();
+  g.selectAll("path")
+      .data(topojson.feature(usData, usData.objects.states).features.filter(function(d) {
+        var state = d.id;
+        return state != 'DC' && state != 'PR' && state != 'VI';
+      }))
+      .enter().append("path")
+        .attr("d", path)
+        .attr("class", "feature")
+        .attr('id', function(d) { return d.id; })
+        .attr('fill', 'gray');
   g.append("path")
       .datum(topojson.mesh(usData, usData.objects.states, function(a, b) { return a !== b; }))
       .attr("class", "state-boundaries")
@@ -394,12 +217,14 @@ function switchChamber() {
 
 function switchAttr() {
   var attr = d3.event.target.value;
+  radioAttr = attr;
   if (attr == 'party') { showPartyAffiliation(); }
   else if (attr == 'missed_votes') { showMissedVotesPct(); }
   else { showVotesWithPartyPct(); }
 }
 
 function showPartyAffiliation() {
+  makeLegend(['R', 'D', 'Split'], ['#e41a1c', '#377eb8', '#984ea3']);
   g.selectAll(".feature")
     .attr("fill", function(d) {
       if(chamber == 'senate'){
@@ -407,21 +232,15 @@ function showPartyAffiliation() {
         var sen1 = senateData[state + 'a'];
         var sen2 = senateData[state + 'b'];
         if (sen1.party == 'R' && sen2.party == 'R') { return '#e41a1c'; }
-        else if (sen1.party == 'D' && sen2.party == 'R') { return '#984ea3'; }
-        else if (sen1.party == 'R' && sen2.party == 'D') { return '#984ea3'; }
         else if (sen1.party == 'D' && sen2.party == 'D') { return '#377eb8'; }
-        else if (sen1.party == 'I' && sen2.party == 'R' ||
-        sen1.party == 'R' && sen2.party == 'I') { return '#fff836'; }
-        else if (sen1.party == 'D' && sen2.party == 'I' ||
-        sen1.party == 'I' && sen2.party == 'D') { return '#00e7e7'; }
-        else if (sen1.party == 'I' && sen2.party == 'I') { return '#4daf4a'; }
+        else{ return '#984ea3'; }
       }
       else {
         var district = d.id;
         var distString = district.toString();
         var rep = houseData[distString];
-        if (rep.party === "R") { return 'red'; }
-        else if (rep.party === "D") { return 'blue'; }
+        if (rep.party === "R") { return '#e41a1c'; }
+        else if (rep.party === "D") { return '#377eb8'; }
         else if (rep.party === "I") { return 'green'; }
       }
     });
@@ -443,22 +262,44 @@ function showQuantitativeAttr(attr) {
 }
 
 function showMissedVotesPct() {
-  color.domain([0, 2, 4, 6, 8]);
+  makeLegend([0, 2, 4, 6, 8], sequentialColors);
   showQuantitativeAttr('missed_votes_pct');
 }
 
 function showVotesWithPartyPct() {
-  color.domain([72, 79, 86, 93, 100]);
+  makeLegend([72, 79, 86, 93, 100], sequentialColors);
   showQuantitativeAttr('votes_with_party_pct');
 }
 
 function showCommittee() {
   var committee = d3.event.target.value;
   if (committee === "") {
-    g.selectAll(".feature").style("fill-opacity", "1");
+    g.selectAll(".feature")
+    .style('fill', function(d){
+      if (radioAttr == 'party') { showPartyAffiliation(); }
+      else if (radioAttr == 'missed_votes') { showMissedVotesPct(); }
+      else { showVotesWithPartyPct(); }
+    })
+    .style("fill-opacity", "1");
     return;
   }
   g.selectAll(".feature")
+      .style('fill', function(d){
+        if (chamber == 'senate') {
+          var sen1 = senateData[d.id + 'a'];
+          var sen2 = senateData[d.id + 'b'];
+          var sen1Com = sen1.committees.indexOf(committee) !== -1;
+          var sen2Com = sen2.committees.indexOf(committee) !== -1;
+          if (!sen1Com && !sen2Com) {
+            return "grey";
+          }
+        } else if (chamber == 'house') {
+          var rep = houseData[d.id];
+          if (rep.committees.indexOf(committee) == -1) {
+            return "grey";
+          }
+        }
+      })
       .style("fill-opacity", function(d) {
         if (chamber == 'senate') {
           var sen1 = senateData[d.id + 'a'];
@@ -497,6 +338,84 @@ function populateCommitteeMenu() {
       .append("option");
   committeeOptions.text(function(d) { return d.name; })
       .attr("value", function(d) { return d.id; });
+}
+
+function appendTextToTooltip(text, y, dy) {
+  tooltip.append("text")
+    .attr('x', '50%')
+    .attr('y', y)
+    .attr("text-anchor", "middle")
+    .attr('dy', dy)
+    .attr('font-weight', function() {
+      if (dy === '') { return 'bolder'; }
+    })
+    .text(text);
+}
+
+function makeTooltip(d, senator) {
+  var rep,
+      y = 0,
+      topY;
+  if (chamber == 'house') { rep = houseData[d.id]; }
+  else { rep = senateData[d.id+senator]; }
+  if (senator === 'b') {
+    y = 150;
+    topY = 175;
+  } else {
+    y = 0;
+    topY = height / 8 - 40;
+  }
+
+  tooltip.append("rect")
+      .attr('x', 5)
+      .attr('y', function() {
+        if (senator === 'b') { return height/2-height/4+15; }
+        else { return 5; }
+      })
+      .attr("width", width/2-100)
+      .attr("height", height/4)
+      .attr("fill", function() {
+        var party = rep.party;
+        if (party == 'R') { return 'red'; }
+        else if (party == 'D') { return 'blue'; }
+        else { return 'green'; }
+      })
+      .attr("stroke", "gray")
+      .attr("stroke-width", 5)
+      .attr("fill-opacity", 0.1);
+
+  appendTextToTooltip(rep.name + ' (' + rep.party + ' - ' + rep.state + ')', topY, '');
+  appendTextToTooltip("Bills Sponsored: " + rep.bills_sponsored, y, '50px');
+  appendTextToTooltip("Votes With Party: " + rep.votes_with_party_pct + '%', y, '70px');
+  appendTextToTooltip("Missed Votes: " + rep.missed_votes_pct + '%', y, '90px');
+  appendTextToTooltip("Seniority: " + rep.seniority, y, '110px');
+  appendTextToTooltip("Age: " + rep.age, y, '130px');
+}
+
+function makeLegend(domain, range) {
+  color.domain(domain);
+  color.range(range);
+  legendData = domain.map(function(d, i) {
+  	return {value: d, color: range[i]};
+  });
+  legend.selectAll('rect').remove();
+  legend.selectAll('text').remove();
+  legend.selectAll('rect')
+    .data(legendData)
+  .enter().append('rect')
+    .attr('x', function(d, i) { return 375 + i * 30; })
+    .attr('y', 6)
+    .attr('width', 30)
+    .attr('height', 18)
+    .style('fill', function(d) { return d.color; });
+  legend.selectAll('text')
+    .data(legendData)
+  .enter().append('text')
+    .attr('x', function(d, i) { return 390 + i * 30; })
+    .attr('y', 40)
+    .attr('text-anchor', 'middle')
+    .style('fill', 'black')
+    .text(function(d) { return d.value; });
 }
 
 function clicked(d) {
@@ -540,25 +459,4 @@ function zoomed() {
 // also stop propagation so we don’t click-to-zoom.
 function stopped() {
   if (d3.event.defaultPrevented) d3.event.stopPropagation();
-}
-
-function sen_header(d, senate, check){
-  var state = d.id;
-  var sen1, sen2;
-  if(state != 'DC' && state != 'PR' && state != 'VI'){
-    for (var j=0; j<101; j++){
-      var sen_home = senate[j].state;
-      if(state == sen_home && !sen1){
-        sen1 = senate[j];
-        for(var k=j+1; k<101; k++){
-          var sen_home2 = senate[k].state;
-          if(state == sen_home2 && !sen2){
-            sen2 = senate[k];
-          }
-        }
-      }
-    }
-  }
-  if(check == 0) return sen1.first_name + ' ' + sen1.last_name;
-  else return sen2.first_name + ' ' + sen2.last_name;
 }

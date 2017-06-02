@@ -15,13 +15,19 @@
       text-align: center;
     }
 
+    #main {
+      width: 100%;
+      display: inline-block;
+    }
+
     #content {
       float: left;
       display: inline-block;
     }
 
     #control {
-      width: 100%;
+      float: left;
+      display: inline-block
     }
 
     #tooltip {
@@ -81,6 +87,9 @@
     <div id="main">
         <div id="content"></div>
         <div id="control">
+            <div id="nomineeSwitch" class="control">
+                <input type="button" name="nomineeButton" value="Nomination Data" onclick="switchViews()"/>
+            </div>
             <div id="chamberControl" class="control">
                 Select chamber:
                 <form action="" id="chamberForm">
@@ -99,8 +108,9 @@
             <div id="committeeControl" class="control">
                 Filter by committee:<br>
             </div>
+            <div id="tooltip"></div>
         </div>
-        <div id="tooltip"></div>
     </div>
+    <div id="legend"></div>
     <script type="text/javascript" src="statemap.js"></script>
 </body>
