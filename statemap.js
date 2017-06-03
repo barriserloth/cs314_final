@@ -77,7 +77,7 @@ d3.json("data/congressional_districts.json", function(congress) {
       d3.json("data/house-members.json", function(house) {
         d3.json("data/senate-committees.json", function(senateComsData) {
           d3.json("data/house-committees.json", function(houseComsData) {
-            d3.json("data/senate-nominees.json", function(nomineeData){
+            d3.json("data/nominees.json", function(nomineeData){
                 nomData = nomineeData;
                 populateNomineeMenu();
             });
