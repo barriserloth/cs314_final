@@ -30,7 +30,6 @@ var committeeSelect = d3.select("#committeeControl").append("select")
 
 var nomineeSelect = d3.select("#nomineeControl").append("select")
     .attr("name", "nominee")
-    .attr('disabled', true)
     .on("change", showNominee);
 
 var sequentialColors = colorbrewer.PuRd[5];
@@ -77,7 +76,7 @@ d3.json("data/congressional_districts.json", function(congress) {
       d3.json("data/house-members.json", function(house) {
         d3.json("data/senate-committees.json", function(senateComsData) {
           d3.json("data/house-committees.json", function(houseComsData) {
-            d3.json("data/nominees.json", function(nomineeData){
+            d3.json("data/nominees.json", function(nomineeData) {
                 nomData = nomineeData;
                 populateNomineeMenu();
             });
@@ -175,18 +174,18 @@ function draw_districts() {
 }
 
 function switchViews() {
-  var disabled;
-  var nomDisable;
+  var hidden;
+  var nomHidden;
   if (view === 'default') {
     view = 'nominees';
-    disabled = true;
-    nomDisable = null;
+    hidden = true;
+    nomHidden = null;
     showNominees();
   }
   else {
     view = 'default';
-    disabled = null;
-    nomDisable = true;
+    hidden = null;
+    nomHidden = true;
     g.selectAll('path').remove();
     if (chamber == 'senate') { draw_states(); }
     else { draw_districts(); }
@@ -195,10 +194,10 @@ function switchViews() {
     else { showVotesWithPartyPct(); }
   }
 
-  chamberSelect.attr('disabled', disabled);
-  attrSelect.attr('disabled', disabled);
-  committeeSelect.attr('disabled', disabled);
-  nomineeSelect.attr('disabled', nomDisable);
+  d3.select('#chamberControl').attr('hidden', hidden);
+  d3.select('#attributeControl').attr('hidden', hidden);
+  d3.select('#committeeControl').attr('hidden', hidden);
+  d3.select('#nomineeControl').attr('hidden', nomHidden);
 }
 
 function showNominees() {
@@ -410,21 +409,22 @@ function showNominee() {
     appendTextToTooltip(nom.name + ' (' + nom.state + ')', height / 8 - 40, '');
 
     var pie = d3.layout.pie()
-        .value(function(d) { return d.count; });
+        .value(function(d) { return d.count; })
+        .sort(function(a,b) { return a.type < b.type; });
 
     var piePath = d3.svg.arc()
-        .outerRadius(60)
+        .outerRadius(80)
         .innerRadius(0);
 
     var pieLabel = d3.svg.arc()
-        .outerRadius(20)
-        .innerRadius(20);
+        .outerRadius(40)
+        .innerRadius(40);
 
     var pieChart = tooltip.selectAll(".pie")
       .data(pie(nom.vote_count))
       .enter().append("g")
         .attr("class", "pie")
-        .attr("transform", "translate(" + 90 + "," + 120 + ")");
+        .attr("transform", "translate(" + 110 + "," + 130 + ")");
 
     pieChart.append("path")
         .attr("d", piePath)
@@ -433,6 +433,7 @@ function showNominee() {
     pieChart.append("text")
         .attr("transform", function(d) { return "translate(" + pieLabel.centroid(d) + ")"; })
         .attr("dy", "0.35em")
+        .attr("text-anchor", "middle")
         .text(function(d) { if (d.data.count > 5) { return d.data.type; } });
   }
 }
