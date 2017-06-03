@@ -148,8 +148,22 @@ def get_committees(chamber):
 
 
 def get_nominees():
-    query = '115/nominees/received.json'
-    results = api_call(query)
+    nominees = []
+    nominees_by_state = {}
+    with open('data/nominations.json', 'r') as f:
+        nominees = json.load(f)
+
+    for nominee in nominees:
+        try:
+            state = nominee['state']
+        except KeyError:
+            continue
+        try:
+            nominees_by_state[state].append(nominee)
+        except KeyError:
+            nominees_by_state[state] = [nominee]
+
+    return nominees_by_state
 
 
 def build_name(first, middle, last):
