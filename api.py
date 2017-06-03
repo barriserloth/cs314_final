@@ -163,10 +163,7 @@ def get_nominees():
                 { 'type': 'yesI', 'count': nominee['independent']['yes'] },
                 { 'type': 'noR', 'count': nominee['republican']['no'] },
                 { 'type': 'noD', 'count': nominee['democratic']['no'] },
-                { 'type': 'noI', 'count': nominee['independent']['no'] },
-                { 'type': 'absR', 'count': nominee['republican']['not_voting'] },
-                { 'type': 'absD', 'count': nominee['democratic']['not_voting'] },
-                { 'type': 'absI', 'count': nominee['independent']['not_voting'] }
+                { 'type': 'noI', 'count': nominee['independent']['no'] }
             ]
         except KeyError:
             continue

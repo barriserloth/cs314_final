@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <head>
+    <title>U.S. Congress Visualizations</title>
     <meta charset="utf-8">
     <style>
     body {
@@ -36,7 +37,7 @@
     }
 
     #legend {
-      margin-top: -30px;
+      margin-top: -90px;
     }
 
     .control {
@@ -62,8 +63,7 @@
     }
 
     .active {
-      stroke: orange;
-      stroke-width: 1px;
+      fill: orange;
     }
 
     .district-boundaries {
@@ -106,8 +106,8 @@
                 Select attribute to visualize:
                 <form action="" id="chamberForm">
                     <input type="radio" name="attr" value="party" checked> Party Affiliation<br>
-                    <input type="radio" name="attr" value="missed_votes"> Missed Votes<br>
-                    <input type="radio" name="attr" value="votes_with_party"> Votes with Party
+                    <input type="radio" name="attr" value="missed_votes"> Missed Votes (%)<br>
+                    <input type="radio" name="attr" value="votes_with_party"> Votes with Party (%)
                 </form>
             </div>
             <div id="committeeControl" class="control">

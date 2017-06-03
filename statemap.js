@@ -64,7 +64,7 @@ svg.append("rect")
 
 var tooltip = d3.select("#tooltip").append("svg")
   .attr('width', width/2-90)
-  .attr('height', height/2+25)
+  .attr('height', height/2+150)
 
 var g = svg.append("g");
 
@@ -183,6 +183,10 @@ function switchViews() {
     showNominees();
   }
   else {
+    tooltip.selectAll('.pie').remove();
+    tooltip.selectAll('text').remove();
+    tooltip.selectAll('rect').remove();
+
     view = 'default';
     hidden = null;
     nomHidden = true;
@@ -298,12 +302,12 @@ function showQuantitativeAttr(attr) {
 }
 
 function showMissedVotesPct() {
-  makeLegend([0, 2, 4, 6, 8], sequentialColors);
+  makeLegend([0, 2, 4, 6, 100], sequentialColors);
   showQuantitativeAttr('missed_votes_pct');
 }
 
 function showVotesWithPartyPct() {
-  makeLegend([72, 79, 86, 93, 100], sequentialColors);
+  makeLegend([0, 80, 85, 90, 100], sequentialColors);
   showQuantitativeAttr('votes_with_party_pct');
 }
 
@@ -385,9 +389,11 @@ function showNominee() {
   var roll = nomId[1];
   var stateNoms = nomData[state];
   var nom;
-  for (var i=0; i<stateNoms.length; i++) {
-    var thisNom = stateNoms[i];
-    if (thisNom.roll_call === roll) { nom = thisNom; break; }
+  if(stateNoms){
+    for (var i=0; i<stateNoms.length; i++) {
+      var thisNom = stateNoms[i];
+      if (thisNom.roll_call === roll) { nom = thisNom; break; }
+    }
   }
   if (roll === "") { drawNominees(); }
   else {
@@ -401,40 +407,84 @@ function showNominee() {
         .attr('x', 5)
         .attr('y', 5)
         .attr("width", width/2-100)
-        .attr("height", height/2)
+        .attr("height", height/2+100)
         .attr("fill", 'green')
         .attr("stroke", "gray")
         .attr("stroke-width", 5)
         .attr("fill-opacity", 0.1);
-    appendTextToTooltip(nom.name + ' (' + nom.state + ')', height / 8 - 40, '');
+    appendTextToTooltip(nom.name + ' (' + nom.state + ')', height / 8 - 35, '', '22px');
 
     var pie = d3.layout.pie()
         .value(function(d) { return d.count; })
         .sort(function(a,b) { return a.type < b.type; });
 
     var piePath = d3.svg.arc()
-        .outerRadius(80)
+        .outerRadius(110)
         .innerRadius(0);
-
-    var pieLabel = d3.svg.arc()
-        .outerRadius(40)
-        .innerRadius(40);
 
     var pieChart = tooltip.selectAll(".pie")
       .data(pie(nom.vote_count))
       .enter().append("g")
         .attr("class", "pie")
-        .attr("transform", "translate(" + 110 + "," + 130 + ")");
+        .attr("transform", "translate(" + 182.5 + "," + 156 + ")");
 
     pieChart.append("path")
         .attr("d", piePath)
-        .attr("fill", function(d) { return 'blue'; });
+        .attr("fill", function(d) {
+          if (d.data.type.substr(-1) == "R") { return "red"; }
+          else if (d.data.type.substr(-1) == "D") { return "blue"; }
+          else { return "green"; }
+        })
+        .attr("fill-opacity", function(d) {
+          if (d.data.type.substr(0, 1) == "y") { return "1"; }
+          else { return "0.6"; }
+        })
+        .append('title')
+          .text(function(d){return d.data.count + " votes";})
 
-    pieChart.append("text")
-        .attr("transform", function(d) { return "translate(" + pieLabel.centroid(d) + ")"; })
-        .attr("dy", "0.35em")
-        .attr("text-anchor", "middle")
-        .text(function(d) { if (d.data.count > 5) { return d.data.type; } });
+    tooltip.append("text")
+        .attr("x", 182.5)
+        .attr("y", 365)
+        .attr('text-anchor', 'middle')
+        .attr('font-style', 'italic')
+        .attr('text-decoration', 'underline')
+        .text(function() { return nom.result; });
+
+    var pieLegend = tooltip.append("g")
+        .attr("class", "pieLegend");
+
+    pieLegend.selectAll("rect")
+        .data(nom.vote_count)
+      .enter().append("rect")
+        .attr("x", function(d, i) { return 150 + (i % 3) * 20; })
+        .attr("y", function(d, i) {
+          if (i < 3) { return 300; }
+          else { return 320; }
+        })
+        .attr("width", 20)
+        .attr("height", 20)
+        .attr("fill", function(d) {
+          if (d.type.substr(-1) == "R") { return "red"; }
+          else if (d.type.substr(-1) == "D") { return "blue"; }
+          else { return "green"; }
+        })
+        .attr("fill-opacity", function(d) {
+          if (d.type.substr(0, 1) == "y") { return "1"; }
+          else { return "0.6"; }
+        });
+
+    function appendLabelToLegend(x, y, text) {
+      pieLegend.append("text")
+          .attr("x", x)
+          .attr("y", y)
+          .text(text);
+    }
+
+    appendLabelToLegend(120, 316, "Yes");
+    appendLabelToLegend(120, 336, "No");
+    appendLabelToLegend(156, 296, "R");
+    appendLabelToLegend(176, 296, "D");
+    appendLabelToLegend(196, 296, "I");
   }
 }
 
@@ -457,12 +507,16 @@ function populateNomineeMenu() {
       .attr('value', function(d) { return d.state + '-' + d.roll_call; });
 }
 
-function appendTextToTooltip(text, y, dy) {
+function appendTextToTooltip(text, y, dy, size) {
   tooltip.append("text")
     .attr('x', '50%')
     .attr('y', y)
     .attr("text-anchor", "middle")
     .attr('dy', dy)
+    .attr('font-size', function(){
+      if(size) return size;
+      else return "16px";
+    })
     .attr('font-weight', function() {
       if (dy === '') { return 'bolder'; }
     })
@@ -532,7 +586,13 @@ function makeLegend(domain, range) {
     .attr('y', 40)
     .attr('text-anchor', 'middle')
     .style('fill', 'black')
-    .text(function(d) { return d.value; });
+    .text(function(d, i) {
+      if (legendData.length == 5) {
+        if (i == 0) { return "< " + legendData[1].value; }
+        else if (i == 4) { return "> " + legendData[3].value; }
+        else { return d.value; }
+      } else { return d.value; }
+    });
 }
 
 function clicked(d) {
