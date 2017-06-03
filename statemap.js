@@ -77,7 +77,7 @@ d3.json("data/congressional_districts.json", function(congress) {
       d3.json("data/house-members.json", function(house) {
         d3.json("data/senate-committees.json", function(senateComsData) {
           d3.json("data/house-committees.json", function(houseComsData) {
-            d3.json("data/nominations.json", function(nomineeData){
+            d3.json("data/senate-nominees.json", function(nomineeData){
                 nomData = nomineeData;
                 populateNomineeMenu();
             });
@@ -188,10 +188,10 @@ function switchViews() {
     disabled = null;
     nomDisable = true;
     g.selectAll('path').remove();
-    if(chamber == 'senate'){ draw_states(); }
+    if (chamber == 'senate') { draw_states(); }
     else { draw_districts(); }
-    if(radioAttr == 'party'){ showPartyAffiliation(); }
-    else if(radioAttr == 'missed_votes'){ showMissedVotesPct(); }
+    if (radioAttr == 'party') { showPartyAffiliation(); }
+    else if (radioAttr == 'missed_votes') { showMissedVotesPct(); }
     else { showVotesWithPartyPct(); }
   }
 
@@ -224,13 +224,18 @@ function showNominees() {
 
 function drawNominees() {
   g.selectAll(".feature")
-    .attr('fill', function(d,i){
+    .attr('fill', function (d) {
       var state = d.id;
-      for(var i=1; i<36; i++){
-        var nom = nomData[i].state;
-        if(nom == state){
-          return 'green';
-        }
+      var nom;
+      if (nomData[state] != null) {
+        noms = nomData[state].length;
+        d3.select(this).attr('fill-opacity', function() {
+          if (noms === 1) { return "0.6"; }
+          else if (noms === 2) { return "0.8"; }
+        });
+        return 'green';
+      } else {
+        return 'gray';
       }
     });
 }
@@ -373,37 +378,82 @@ function populateCommitteeMenu() {
 }
 
 function showNominee() {
-  var roll = d3.event.target.value;
-  if (roll === "") {
-    g.selectAll(".feature")
-    .style('fill', function(d){
-      drawNominees();
-    })
-    return;
+  tooltip.selectAll("rect").remove();
+  tooltip.selectAll("text").remove();
+  tooltip.selectAll(".pie").remove();
+  var nomId = d3.event.target.value.split("-");
+  var state = nomId[0];
+  var roll = nomId[1];
+  var stateNoms = nomData[state];
+  var nom;
+  for (var i=0; i<stateNoms.length; i++) {
+    var thisNom = stateNoms[i];
+    if (thisNom.roll_call === roll) { nom = thisNom; break; }
   }
-  g.selectAll(".feature")
-      .style('fill', function(d){
-          for(var i=1; i<36; i++){
-            if(nomData[i].roll_call == roll){
-              nom = nomData[i]
-              if(nom.state == d.id){
-                return "green";
-              }
-            }
-          }
-          return "gray";
-      })
+  if (roll === "") { drawNominees(); }
+  else {
+    g.selectAll(".feature")
+        .attr('fill', function(d) {
+          if (state === d.id) { return 'green'; }
+          else { return 'gray'; }
+        })
+        .attr('fill-opacity', '1');
+    tooltip.append("rect")
+        .attr('x', 5)
+        .attr('y', 5)
+        .attr("width", width/2-100)
+        .attr("height", height/2)
+        .attr("fill", 'green')
+        .attr("stroke", "gray")
+        .attr("stroke-width", 5)
+        .attr("fill-opacity", 0.1);
+    appendTextToTooltip(nom.name + ' (' + nom.state + ')', height / 8 - 40, '');
+
+    var pie = d3.layout.pie()
+        .value(function(d) { return d.count; });
+
+    var piePath = d3.svg.arc()
+        .outerRadius(60)
+        .innerRadius(0);
+
+    var pieLabel = d3.svg.arc()
+        .outerRadius(20)
+        .innerRadius(20);
+
+    var pieChart = tooltip.selectAll(".pie")
+      .data(pie(nom.vote_count))
+      .enter().append("g")
+        .attr("class", "pie")
+        .attr("transform", "translate(" + 90 + "," + 120 + ")");
+
+    pieChart.append("path")
+        .attr("d", piePath)
+        .attr("fill", function(d) { return 'blue'; });
+
+    pieChart.append("text")
+        .attr("transform", function(d) { return "translate(" + pieLabel.centroid(d) + ")"; })
+        .attr("dy", "0.35em")
+        .text(function(d) { if (d.data.count > 5) { return d.data.type; } });
+  }
 }
 
 function populateNomineeMenu() {
+  var nomList = [];
+  for (var state in nomData) {
+    var noms = nomData[state];
+    for (var i=0; i<noms.length; i++) {
+      nomList.push(noms[i]);
+    }
+  }
+  // Sort nominees by position name
+  nomList.sort(function(a,b) { return (a.position > b.position) ? 1 : ((b.position > a.position) ? -1 : 0); });
+  nomList.unshift({ position: "", roll_call: -1 });
   var nomOptions = nomineeSelect.selectAll("option")
-      .data(nomData)
+      .data(nomList)
     .enter()
-      .append("option");
-  nomOptions.text(function(d) { return d.position; })
-    .attr('value', function(d) {
-      return d.roll_call;
-    });
+      .append("option")
+      .text(function(d) { return d.position; })
+      .attr('value', function(d) { return d.state + '-' + d.roll_call; });
 }
 
 function appendTextToTooltip(text, y, dy) {

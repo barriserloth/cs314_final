@@ -156,6 +156,18 @@ def get_nominees():
     for nominee in nominees:
         try:
             state = nominee['state']
+            nominee['name'] = nominee['description'].split(",")[0]
+            nominee['vote_count'] = [
+                { 'type': 'yesR', 'count': nominee['republican']['yes'] },
+                { 'type': 'yesD', 'count': nominee['democratic']['yes'] },
+                { 'type': 'yesI', 'count': nominee['independent']['yes'] },
+                { 'type': 'noR', 'count': nominee['republican']['no'] },
+                { 'type': 'noD', 'count': nominee['democratic']['no'] },
+                { 'type': 'noI', 'count': nominee['independent']['no'] },
+                { 'type': 'absR', 'count': nominee['republican']['not_voting'] },
+                { 'type': 'absD', 'count': nominee['democratic']['not_voting'] },
+                { 'type': 'absI', 'count': nominee['independent']['not_voting'] }
+            ]
         except KeyError:
             continue
         try:
