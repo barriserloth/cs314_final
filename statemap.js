@@ -195,6 +195,7 @@ function switchViews() {
     view = 'default';
     hidden = null;
     nomHidden = true;
+    nomineeSwitch.attr('value', 'Nomination Data');
     g.selectAll('path').remove();
     if (chamber == 'senate') { draw_states(); }
     else { draw_districts(); }
