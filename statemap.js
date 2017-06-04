@@ -34,9 +34,12 @@ var nomineeSelect = d3.select("#nomineeControl").append("select")
 
 var sequentialColors = colorbrewer.PuRd[5];
 
-var color = d3.scale.linear()
-    .domain([0, 25, 50, 75, 100])
+var color = d3.scale.quantile()
     .range(sequentialColors);
+
+var partyColor = d3.scale.ordinal()
+    .domain(["R", "D", "I", "Split"])
+    .range(["#e41a1c", "#377eb8", "green", "#984ea3"])
 
 var zoom_c = false;
 
@@ -176,10 +179,12 @@ function draw_districts() {
 function switchViews() {
   var hidden;
   var nomHidden;
+  var nomineeSwitch = d3.select('input[name=nomineeButton]');
   if (view === 'default') {
     view = 'nominees';
     hidden = true;
     nomHidden = null;
+    nomineeSwitch.attr('value', 'Representative Data');
     showNominees();
   }
   else {
@@ -202,6 +207,7 @@ function switchViews() {
   d3.select('#attributeControl').attr('hidden', hidden);
   d3.select('#committeeControl').attr('hidden', hidden);
   d3.select('#nomineeControl').attr('hidden', nomHidden);
+  d3.select("#legend").attr('hidden', null);
 }
 
 function showNominees() {
@@ -241,6 +247,41 @@ function drawNominees() {
         return 'gray';
       }
     });
+
+    legend.selectAll('rect').remove();
+    legend.selectAll('text').remove();
+    legend.selectAll('rect')
+        .data([0, 1, 2, 3])
+      .enter().append('rect')
+        .attr('x', function(d, i) { return 435 + i * 40; })
+        .attr('y', 6)
+        .attr('width', 40)
+        .attr('height', 20)
+        .attr('fill', function(d) {
+          if (d != 0) {
+            d3.select(this).attr('fill-opacity', function() {
+              if (d === 1) { return "0.6"; }
+              else if (d === 2) { return "0.8"; }
+            });
+            return 'green';
+          } else {
+            return 'gray';
+          }
+        });
+    legend.selectAll('text')
+        .data(["0", "1", "2", "3+"])
+      .enter().append('text')
+        .attr('x', function(d, i) { return 455 + i * 40; })
+        .attr('y', 42)
+        .attr('text-anchor', 'middle')
+        .style('fill', 'black')
+        .text(function(d) { return d; });
+    legend.append('text')
+        .attr('x', 350)
+        .attr('y', 22)
+        .attr('text-anchor', 'middle')
+        .style('fill', 'black')
+        .text('Number of nominees');
 }
 
 function switchChamber() {
@@ -264,29 +305,56 @@ function switchAttr() {
 }
 
 function showPartyAffiliation() {
-  makeLegend(['R', 'D', 'Split'], ['#e41a1c', '#377eb8', '#984ea3']);
   g.selectAll(".feature")
     .attr("fill", function(d) {
       if(chamber == 'senate'){
         var state = d.id;
         var sen1 = senateData[state + 'a'];
         var sen2 = senateData[state + 'b'];
-        if (sen1.party == 'R' && sen2.party == 'R') { return '#e41a1c'; }
-        else if (sen1.party == 'D' && sen2.party == 'D') { return '#377eb8'; }
-        else{ return '#984ea3'; }
+        if (sen1.party == 'R' && sen2.party == 'R') { return partyColor("R"); }
+        else if (sen1.party == 'D' && sen2.party == 'D') { return partyColor("D"); }
+        else{ return partyColor("Split"); }
       }
       else {
-        var district = d.id;
-        var distString = district.toString();
-        var rep = houseData[distString];
-        if (rep.party === "R") { return '#e41a1c'; }
-        else if (rep.party === "D") { return '#377eb8'; }
-        else if (rep.party === "I") { return 'green'; }
+        var district = d.id.toString();
+        var rep = houseData[district];
+        return partyColor(rep.party);
       }
     });
+
+    var legendData;
+    if (chamber == "house") { legendData = ["R", "D"]; }
+    else { legendData = ["R", "D", "Split"]; }
+    legend.selectAll('rect').remove();
+    legend.selectAll('text').remove();
+    legend.selectAll('rect')
+      .data(legendData)
+    .enter().append('rect')
+      .attr('x', function(d, i) { return 435 + i * 40; })
+      .attr('y', 6)
+      .attr('width', 40)
+      .attr('height', 20)
+      .style('fill', function(d) { return partyColor(d); });
+    legend.selectAll('text')
+      .data(legendData)
+    .enter().append('text')
+      .attr('x', function(d, i) { return 455 + i * 40; })
+      .attr('y', 42)
+      .attr('text-anchor', 'middle')
+      .style('fill', 'black')
+      .text(function(d) { return d; });
 }
 
 function showQuantitativeAttr(attr) {
+  var reps = [];
+  var repData;
+  if (chamber == 'house') { repData = houseData; }
+  else { repData = senateData; }
+  for (var key in repData) {
+    reps.push(repData[key]);
+  }
+  color.domain(reps.map(function(d) { return d[attr]; }));
+  makeLegend();
   g.selectAll(".feature")
       .attr("fill", function(d) {
         if (chamber == 'senate') {
@@ -302,12 +370,10 @@ function showQuantitativeAttr(attr) {
 }
 
 function showMissedVotesPct() {
-  makeLegend([0, 2, 4, 6, 100], sequentialColors);
   showQuantitativeAttr('missed_votes_pct');
 }
 
 function showVotesWithPartyPct() {
-  makeLegend([0, 80, 85, 90, 100], sequentialColors);
   showQuantitativeAttr('votes_with_party_pct');
 }
 
@@ -395,8 +461,12 @@ function showNominee() {
       if (thisNom.roll_call === roll) { nom = thisNom; break; }
     }
   }
-  if (roll === "") { drawNominees(); }
+  if (roll === "") {
+    d3.select("#legend").attr('hidden', null);
+    drawNominees();
+  }
   else {
+    d3.select("#legend").attr('hidden', true);
     g.selectAll(".feature")
         .attr('fill', function(d) {
           if (state === d.id) { return 'green'; }
@@ -431,8 +501,8 @@ function showNominee() {
     pieChart.append("path")
         .attr("d", piePath)
         .attr("fill", function(d) {
-          if (d.data.type.substr(-1) == "R") { return "red"; }
-          else if (d.data.type.substr(-1) == "D") { return "blue"; }
+          if (d.data.type.substr(-1) == "R") { return "#e41a1c"; }
+          else if (d.data.type.substr(-1) == "D") { return "#377eb8"; }
           else { return "green"; }
         })
         .attr("fill-opacity", function(d) {
@@ -464,8 +534,8 @@ function showNominee() {
         .attr("width", 20)
         .attr("height", 20)
         .attr("fill", function(d) {
-          if (d.type.substr(-1) == "R") { return "red"; }
-          else if (d.type.substr(-1) == "D") { return "blue"; }
+          if (d.type.substr(-1) == "R") { return "#e41a1c"; }
+          else if (d.type.substr(-1) == "D") { return "#377eb8"; }
           else { return "green"; }
         })
         .attr("fill-opacity", function(d) {
@@ -563,36 +633,25 @@ function makeTooltip(d, senator) {
   appendTextToTooltip("Age: " + rep.age, y, '130px');
 }
 
-function makeLegend(domain, range) {
-  color.domain(domain);
-  color.range(range);
-  legendData = domain.map(function(d, i) {
-  	return {value: d, color: range[i]};
-  });
+function makeLegend() {
   legend.selectAll('rect').remove();
   legend.selectAll('text').remove();
   legend.selectAll('rect')
-    .data(legendData)
+    .data(color.range())
   .enter().append('rect')
-    .attr('x', function(d, i) { return 375 + i * 30; })
+    .attr('x', function(d, i) { return 350 + i * 50; })
     .attr('y', 6)
-    .attr('width', 30)
-    .attr('height', 18)
-    .style('fill', function(d) { return d.color; });
+    .attr('width', 50)
+    .attr('height', 20)
+    .style('fill', function(d) { return d; });
   legend.selectAll('text')
-    .data(legendData)
+    .data(color.quantiles())
   .enter().append('text')
-    .attr('x', function(d, i) { return 390 + i * 30; })
-    .attr('y', 40)
+    .attr('x', function(d, i) { return 400 + i * 50; })
+    .attr('y', 42)
     .attr('text-anchor', 'middle')
     .style('fill', 'black')
-    .text(function(d, i) {
-      if (legendData.length == 5) {
-        if (i == 0) { return "< " + legendData[1].value; }
-        else if (i == 4) { return "> " + legendData[3].value; }
-        else { return d.value; }
-      } else { return d.value; }
-    });
+    .text(function(d) { return d.toFixed(1); });
 }
 
 function clicked(d) {
