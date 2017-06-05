@@ -22,6 +22,6 @@ We used additional data from a few other sources, outlined below:
 
 `api.py` is a Python 3 script that downloads data from the ProPublica API and turns it into nicely formatted CSVs. Run `python3 api.py -h` for usage options.
 
-# Citation
+## Citation
 
 Code to zoom in on states/districts provided by the example found at https://bl.ocks.org/mbostock/9656675
