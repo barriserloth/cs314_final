@@ -1,8 +1,9 @@
 <!DOCTYPE html>
+
 <head>
-    <title>U.S. Congress Visualizations</title>
-    <meta charset="utf-8">
-    <style>
+  <title>U.S. Congress Visualizations</title>
+  <meta charset="utf-8">
+  <style>
     body {
       font-family: sans-serif;
     }
@@ -82,44 +83,44 @@
       stroke-width: 1.5px;
       vector-effect: non-scaling-stroke;
     }
-    </style>
-    <script src="https://d3js.org/d3.v3.min.js"></script>
-    <script src="https://d3js.org/topojson.v1.min.js"></script>
-    <script src="https://d3js.org/colorbrewer.v1.min.js"></script>
+  </style>
+  <script src="https://d3js.org/d3.v3.min.js"></script>
+  <script src="https://d3js.org/topojson.v1.min.js"></script>
+  <script src="https://d3js.org/colorbrewer.v1.min.js"></script>
 </head>
 
 <body>
-    <h1>U.S. Congress Data Visualizations</h1>
-    <div id="main">
-        <div id="content"></div>
-        <div id="control">
-            <div id="nomineeSwitch" class="control">
-                <input type="button" name="nomineeButton" value="Nomination Data" onclick="switchViews()"/>
-            </div>
-            <div id="chamberControl" class="control">
-                Select chamber:
-                <form action="" id="chamberForm">
-                    <input type="radio" name="chamber" value="house" checked> House<br>
-                    <input type="radio" name="chamber" value="senate"> Senate
-                </form>
-            </div>
-            <div id="attributeControl" class="control">
-                Select attribute to visualize:
-                <form action="" id="chamberForm">
-                    <input type="radio" name="attr" value="party" checked> Party Affiliation<br>
-                    <input type="radio" name="attr" value="missed_votes"> Missed Votes (%)<br>
-                    <input type="radio" name="attr" value="votes_with_party"> Votes with Party (%)
-                </form>
-            </div>
-            <div id="committeeControl" class="control">
-                Filter by committee:<br>
-            </div>
-            <div id="nomineeControl" class="control" hidden>
-                Select nominee position:<br>
-            </div>
-            <div id="tooltip"></div>
-        </div>
+  <h1>U.S. Congress Data Visualizations</h1>
+  <div id="main">
+    <div id="content"></div>
+    <div id="control">
+      <div id="nomineeSwitch" class="control">
+        <input type="button" name="nomineeButton" value="Nomination Data" onclick="switchViews()" />
+      </div>
+      <div id="chamberControl" class="control">
+        Select chamber:
+        <form action="" id="chamberForm">
+          <input type="radio" name="chamber" value="house" checked> House<br>
+          <input type="radio" name="chamber" value="senate"> Senate
+        </form>
+      </div>
+      <div id="attributeControl" class="control">
+        Select attribute to visualize:
+        <form action="" id="chamberForm">
+          <input type="radio" name="attr" value="party" checked> Party Affiliation<br>
+          <input type="radio" name="attr" value="missed_votes"> Missed Votes (%)<br>
+          <input type="radio" name="attr" value="votes_with_party"> Votes with Party (%)
+        </form>
+      </div>
+      <div id="committeeControl" class="control">
+        Filter by committee:<br>
+      </div>
+      <div id="nomineeControl" class="control" hidden>
+        Select nominee position:<br>
+      </div>
+      <div id="tooltip"></div>
     </div>
-    <div id="legend"></div>
-    <script type="text/javascript" src="statemap.js"></script>
+  </div>
+  <div id="legend"></div>
+  <script type="text/javascript" src="statemap.js"></script>
 </body>
