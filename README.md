@@ -22,6 +22,10 @@ We used additional data from a few other sources, outlined below:
 
 `api.py` is a Python 3 script that downloads data from the ProPublica API and turns it into nicely formatted CSVs. Run `python3 api.py -h` for usage options.
 
+`statemap.html` is the main HTML file for our visualization, containing styles and the basic structure of the page.
+
+`statemap.js` is the main logic of our visualization.
+
 ## Citation
 
 Code to zoom in on states/districts provided by the example found at https://bl.ocks.org/mbostock/9656675
