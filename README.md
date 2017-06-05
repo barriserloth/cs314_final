@@ -26,6 +26,24 @@ We used additional data from a few other sources, outlined below:
 
 `statemap.js` is the main logic of our visualization.
 
+`data/congressional_districts.json` is a TopoJSON file containing the boundaries of congressional districs.
+
+`data/fips_codes.csv` is a CSV that maps FIPS codes to human-readable state abbreviations.
+
+`data/house-committees.json` is a list of House committees and their chairs and members.
+
+`data/house-members.json` is a list of House representatives, the committees they sit on, and statistics such as missed vote percent and votes with party percent.
+
+`data/nominations.json` is a list of nominees to federal offices that we downloaded straight from ProPublica and manually added some data to, most notably the `position` fields.
+
+`data/nominees.json` is a reorganized version of the above file that we actually use in our visualization.
+
+`data/senate-committees.json` is the same as `data/house-committees.json`, but for the Senate instead of the House.
+
+`data/senate-members.json` is the same as `data/house-members.json`, but for senators instead of representatives.
+
+`data/us.json` is a TopoJSON file containing the boundaries of U.S. states.
+
 ## Citation
 
 Code to zoom in on states/districts provided by the example found at https://bl.ocks.org/mbostock/9656675
